@@ -8,7 +8,10 @@ namespace ReinforcementLearning
 {
     public abstract class Environment
     {
-        public List<int> ObservationSpace = new List<int>();
-        public List<int> ActionSpace = new List<int>();
+        public abstract List<int> ObservationSpace { get; protected set; }
+        public abstract List<int> ActionSpace  { get; protected set; }
+        public abstract int Space { get; }
+
+
     }
 }
