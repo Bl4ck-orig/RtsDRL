@@ -311,5 +311,149 @@ namespace TestProject.Training
             Commons.FlattenMax(null);
         }
 
+        [TestMethod]
+        public void Commons_DotProduct_ValidMatrices_ReturnsCorrectProduct()
+        {
+            double[,] matrix1 = { { 1, 2 }, { 3, 4 } };
+            double[,] matrix2 = { { 2, 0 }, { 1, 2 } };
+            double[,] expectedProduct = { { 4, 4 }, { 10, 8 } };
+
+            double[,] actualProduct = Commons.DotProduct(matrix1, matrix2);
+
+            CollectionAssert.AreEqual(expectedProduct, actualProduct);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public void Commons_DotProduct_InvalidDimensions_ThrowsException()
+        {
+            double[,] matrix1 = { { 1, 2 } }; // 1x2 matrix
+            double[,] matrix2 = { { 2 }, { 1 }, { 3 } }; // 3x1 matrix
+
+            var result = Commons.DotProduct(matrix1, matrix2);
+        }
+
+        [TestMethod]
+        public void Commons_AddVector_ValidMatrices_ReturnsCorrectSum()
+        {
+            double[,] matrix1 = { { 1, 2 }, { 3, 4 } };
+            double[,] vector = { { 1 }, { 2 } };
+            double[,] expectedSum = { { 2, 3 }, { 5, 6 } };
+
+            double[,] actualSum = Commons.AddVector(matrix1, vector);
+
+            CollectionAssert.AreEqual(expectedSum, actualSum);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public void Commons_AddVector_InvalidDimensions_ThrowsException()
+        {
+            double[,] matrix1 = { { 1, 2 }, { 3, 4 } };
+            double[,] vector = { { 1, 2 } };
+
+            var result = Commons.AddVector(matrix1, vector);
+        }
+
+        [TestMethod]
+        public void Commons_Add_ValidMatrices_ReturnsCorrectSum()
+        {
+            double[,] matrix1 = { { 1, 2 }, { 3, 4 } };
+            double[,] matrix2 = { { 2, 0 }, { 1, 2 } };
+            double[,] expectedSum = { { 3, 2 }, { 4, 6 } };
+
+            double[,] actualSum = Commons.Add(matrix1, matrix2);
+
+            CollectionAssert.AreEqual(expectedSum, actualSum);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public void Commons_Add_InvalidDimensions_ThrowsException()
+        {
+            double[,] matrix1 = { { 1, 2 } };
+            double[,] matrix2 = { { 2, 0, 3 }, { 1, 2, 4 } };
+
+            var result = Commons.Add(matrix1, matrix2);
+        }
+
+        [TestMethod]
+        public void Commons_Subtract_ValidMatrices_ReturnsCorrectDifference()
+        {
+            double[,] matrix1 = { { 3, 5 }, { 8, 10 } };
+            double[,] matrix2 = { { 1, 2 }, { 3, 4 } };
+            double[,] expectedDifference = { { 2, 3 }, { 5, 6 } };
+
+            double[,] actualDifference = Commons.Subtract(matrix1, matrix2);
+
+            CollectionAssert.AreEqual(expectedDifference, actualDifference);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public void Commons_Subtract_InvalidDimensions_ThrowsException()
+        {
+            double[,] matrix1 = { { 1, 2 } };
+            double[,] matrix2 = { { 1 }, { 2 } };
+
+            var result = Commons.Subtract(matrix1, matrix2);
+        }
+
+        [TestMethod]
+        public void Commons_Multiply_MatrixWithScalar_ReturnsCorrectProduct()
+        {
+            double[,] matrix = { { 1, 2 }, { 3, 4 } };
+            double scalar = 2;
+            double[,] expectedProduct = { { 2, 4 }, { 6, 8 } };
+
+            double[,] actualProduct = Commons.Multiply(matrix, scalar);
+
+            CollectionAssert.AreEqual(expectedProduct, actualProduct);
+        }
+
+        [TestMethod]
+        public void Commons_Multiply_ElementWise_ValidMatrices_ReturnsCorrectProduct()
+        {
+            double[,] matrix1 = { { 1, 2 }, { 3, 4 } };
+            double[,] matrix2 = { { 5, 6 }, { 7, 8 } };
+            double[,] expectedProduct = { { 5, 12 }, { 21, 32 } };
+
+            double[,] actualProduct = Commons.Multiply(matrix1, matrix2);
+
+            CollectionAssert.AreEqual(expectedProduct, actualProduct);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public void Commons_Multiply_ElementWise_InvalidDimensions_ThrowsException()
+        {
+            double[,] matrix1 = { { 1, 2 } };
+            double[,] matrix2 = { { 1, 2, 3 }, { 4, 5, 6 } };
+
+            var result = Commons.Multiply(matrix1, matrix2);
+        }
+
+        [TestMethod]
+        public void Commons_Transpose_ValidMatrix_ReturnsCorrectTranspose()
+        {
+            double[,] matrix = { { 1, 2 }, { 3, 4 } };
+            double[,] expectedTranspose = { { 1, 3 }, { 2, 4 } };
+
+            double[,] actualTranspose = Commons.Transpose(matrix);
+
+            CollectionAssert.AreEqual(expectedTranspose, actualTranspose);
+        }
+
+        [TestMethod]
+        public void Commons_ReverseY_ValidMatrix_ReturnsCorrectlyReversedMatrix()
+        {
+            int[,] matrix = { { 1, 2 }, { 3, 4 } };
+            int[,] expectedReversed = { { 2, 1 }, { 4, 3 } };
+
+            int[,] actualReversed = Commons.ReverseY(matrix);
+
+            CollectionAssert.AreEqual(expectedReversed, actualReversed);
+        }
+
     }
 }

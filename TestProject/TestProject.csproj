@@ -52,6 +52,7 @@
     <Compile Include="CommonsTest.cs" />
     <Compile Include="Environment\EnvironmentTest.cs" />
     <Compile Include="Exploration\ExplorationTest.cs" />
+    <Compile Include="Training\NfqTest.cs" />
     <Compile Include="Training\QLearningTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

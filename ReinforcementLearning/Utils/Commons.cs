@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO.Compression;
+using System.Linq;
 
 namespace ReinforcementLearning
 {
@@ -168,5 +169,200 @@ namespace ReinforcementLearning
             return maxValue;
         }
 
+        #region Arithmetics -----------------------------------------------------------------
+        public static double[,] DotProduct(this double[,] _matrix1, double[,] _matrix2)
+        {
+            var matrix1Rows = _matrix1.GetLength(0);
+            var matrix1Cols = _matrix1.GetLength(1);
+            var matrix2Rows = _matrix2.GetLength(0);
+            var matrix2Cols = _matrix2.GetLength(1);
+
+            if (matrix1Cols != matrix2Rows)
+                throw new InvalidOperationException
+                  ("Product is undefined. n columns of first matrix must equal to n rows of second matrix");
+
+            double[,] product = new double[matrix1Rows, matrix2Cols];
+
+            for (int matrix1_row = 0; matrix1_row < matrix1Rows; matrix1_row++)
+            {
+                for (int matrix2_col = 0; matrix2_col < matrix2Cols; matrix2_col++)
+                {
+                    for (int matrix1_col = 0; matrix1_col < matrix1Cols; matrix1_col++)
+                    {
+                        product[matrix1_row, matrix2_col] +=
+                          _matrix1[matrix1_row, matrix1_col] *
+                          _matrix2[matrix1_col, matrix2_col];
+                    }
+                }
+            }
+
+            return product;
+        }
+
+        public static double[,] AddVector(this double[,] _matrix1, double[,] _matrix2)
+        {
+            var matrix1Rows = _matrix1.GetLength(0);
+            var matrix1Cols = _matrix1.GetLength(1);
+            var matrix2Rows = _matrix2.GetLength(0);
+
+            if (matrix1Rows != matrix2Rows)
+                throw new InvalidOperationException
+                  ("Product is undefined. n columns of first matrix must equal to n rows of second matrix");
+
+            double[,] product = new double[matrix1Rows, matrix1Cols];
+
+            for (int x = 0; x < matrix1Rows; x++)
+            {
+                for (int y = 0; y < matrix1Cols; y++)
+                {
+                    product[x, y] = _matrix1[x, y] + _matrix2[x, 0];
+                }
+            }
+
+            return product;
+        }
+
+        public static double[,] Add(this double[,] _matrix, double[,] _by)
+        {
+            int _matrixWidth = _matrix.GetLength(0);
+            int _matrixHeight = _matrix.GetLength(1);
+
+            int _byWidth = _by.GetLength(0);
+            int _byHeight = _by.GetLength(1);
+
+            if (_matrixWidth != _byWidth ||
+                _matrixHeight != _byHeight)
+                throw new ArgumentException("Matrix multiplication not possible");
+
+            double[,] c = new double[_matrixWidth, _matrixHeight];
+            for (int x = 0; x < _matrixWidth; x++)
+            {
+                for (int y = 0; y < _matrixHeight; y++)
+                {
+                    c[x, y] = _matrix[x, y] + _by[x, y];
+                }
+            }
+
+            return c;
+        }
+
+        public static double[,] Subtract(this double[,] _matrix, double[,] _by)
+        {
+            int _matrixWidth = _matrix.GetLength(0);
+            int _matrixHeight = _matrix.GetLength(1);
+
+            int _byWidth = _by.GetLength(0);
+            int _byHeight = _by.GetLength(1);
+
+            if (_matrixWidth != _byWidth ||
+                _matrixHeight != _byHeight)
+                throw new ArgumentException("Matrix multiplication not possible");
+
+            double[,] c = new double[_matrixWidth, _matrixHeight];
+            for (int x = 0; x < _matrixWidth; x++)
+            {
+                for (int y = 0; y < _matrixHeight; y++)
+                {
+                    c[x, y] = _matrix[x, y] - _by[x, y];
+                }
+            }
+
+            return c;
+        }
+
+        public static double[,] Multiply(this double[,] _matrix, double _scalar)
+        {
+            int _matrixWidth = _matrix.GetLength(0);
+            int _matrixHeight = _matrix.GetLength(1);
+
+            double[,] c = new double[_matrixWidth, _matrixHeight];
+            for (int x = 0; x < _matrixWidth; x++)
+            {
+                for (int y = 0; y < _matrixHeight; y++)
+                {
+                    c[x, y] = _matrix[x, y] * _scalar;
+                }
+            }
+
+            return c;
+        }
+
+        public static double[,] Multiply(this double[,] _matrix, double[,] _other)
+        {
+            int _matrixWidth = _matrix.GetLength(0);
+            int _matrixHeight = _matrix.GetLength(1);
+
+            int _byWidth = _other.GetLength(0);
+            int _byHeight = _other.GetLength(1);
+
+            if (_matrixWidth != _byWidth ||
+                _matrixHeight != _byHeight)
+                throw new ArgumentException("Matrix multiplication not possible");
+
+            double[,] c = new double[_matrixWidth, _byHeight];
+            for (int x = 0; x < _matrixWidth; x++)
+            {
+                for (int y = 0; y < _matrixHeight; y++)
+                {
+                    c[x, y] = _matrix[x, y] * _other[x, y];
+                }
+            }
+
+            return c;
+        }
+        #endregion -----------------------------------------------------------------
+
+        #region Element Maniuplation -----------------------------------------------------------------
+        public static T[,] Transpose<T>(this T[,] matrix)
+        {
+            int w = matrix.GetLength(0);
+            int h = matrix.GetLength(1);
+
+            T[,] result = new T[h, w];
+
+            for (int i = 0; i < w; i++)
+            {
+                for (int j = 0; j < h; j++)
+                {
+                    result[j, i] = matrix[i, j];
+                }
+            }
+
+            return result;
+        }
+
+        public static T[,] ReverseY<T>(this T[,] _colorArray)
+        {
+            T[,] newArray = new T[_colorArray.GetLength(0), _colorArray.GetLength(1)];
+            for (int x = 0; x < _colorArray.GetLength(0); x++)
+            {
+                for (int yIn = 0, yOut = _colorArray.GetLength(1) - 1; yIn < _colorArray.GetLength(1); yIn++, yOut--)
+                {
+                    newArray[x, yOut] = _colorArray[x, yIn];
+                }
+            }
+
+            return newArray;
+        }
+
+        public static double[,] SoftMax(double[,] _matrix)
+        {
+            double[,] softmax = new double[_matrix.GetLength(0), _matrix.GetLength(1)];
+
+            for (int y = 0; y < _matrix.GetLength(1); y++)
+            {
+                double expForBatch = (double)Enumerable.Range(0, _matrix.GetLength(0)).Select(i => Math.Exp(_matrix[i, y])).Sum();
+
+                for (int x = 0; x < _matrix.GetLength(0); x++)
+                {
+                    softmax[x, y] = (double)Math.Exp(_matrix[x, y]) / expForBatch;
+                }
+            }
+
+            return softmax;
+        }
+        #endregion Element Maniuplation -----------------------------------------------------------------
     }
+
+
 }
