@@ -193,5 +193,84 @@ namespace TestProject.Training
             }
         }
 
+        [TestMethod]
+        public void Commons_GetMaxValueOfRow_ValidRow_ReturnsMaxValue()
+        {
+            double[,] array = { { 1.5, 2.3, 3.7 }, { 4.2, 5.1, 6.6 }, { 7.0, 8.8, 9.9 } };
+            var result = Commons.GetMaxValueOfRow(array, 1);
+            Assert.AreEqual(6.6, result);
+        }
+
+        [TestMethod]
+        public void Commons_GetMaxValueOfRow_FirstRow_ReturnsMaxValue()
+        {
+            double[,] array = { { 1.5, 2.3, 3.7 }, { 4.2, 5.1, 6.6 }, { 7.0, 8.8, 9.9 } };
+            var result = Commons.GetMaxValueOfRow(array, 0);
+            Assert.AreEqual(3.7, result);
+        }
+
+        [TestMethod]
+        public void Commons_GetMaxValueOfRow_LastRow_ReturnsMaxValue()
+        {
+            double[,] array = { { 1.5, 2.3, 3.7 }, { 4.2, 5.1, 6.6 }, { 7.0, 8.8, 9.9 } };
+            var result = Commons.GetMaxValueOfRow(array, 2);
+            Assert.AreEqual(9.9, result);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void Commons_GetMaxValueOfRow_NullArray_ThrowsException()
+        {
+            Commons.GetMaxValueOfRow(null, 0);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentOutOfRangeException))]
+        public void Commons_GetMaxValueOfRow_RowOutOfRange_ThrowsException()
+        {
+            double[,] array = { { 1.5, 2.3, 3.7 } };
+            Commons.GetMaxValueOfRow(array, 3);
+        }
+
+        [TestMethod]
+        public void Commons_FlattenMax_WithValidInput_ReturnsCorrectMaxValues()
+        {
+            // Arrange
+            double[,] array = {
+            { 1.0, 2.0, 3.0 },
+            { 6.0, 5.0, 4.0 },
+            { 7.0, 8.0, 9.0 }
+        };
+            double[] expected = { 3.0, 6.0, 9.0 };
+
+            // Act
+            double[] actual = Commons.FlattenMax(array);
+
+            // Assert
+            CollectionAssert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void Commons_FlattenMax_WithEmptyArray_ReturnsEmptyArray()
+        {
+            // Arrange
+            double[,] array = new double[0, 0];
+            double[] expected = new double[0];
+
+            // Act
+            double[] actual = Commons.FlattenMax(array);
+
+            // Assert
+            CollectionAssert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void Commons_FlattenMax_WithNullArray_ThrowsArgumentNullException()
+        {
+            // Act
+            Commons.FlattenMax(null);
+        }
+
     }
 }

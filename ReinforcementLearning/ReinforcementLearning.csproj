@@ -45,14 +45,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Environment\StateAction.cs" />
+    <Compile Include="Environment\StepAction.cs" />
     <Compile Include="Environment\EnvironemntFrozenLake.cs" />
     <Compile Include="Environment\Environment.cs" />
+    <Compile Include="Environment\StepResult.cs" />
     <Compile Include="Exploration\Exploration.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Training\QLearning.cs" />
     <Compile Include="Commons.cs" />
     <Compile Include="Training\QLearningArgs.cs" />
+    <Compile Include="Training\QLearningResult.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

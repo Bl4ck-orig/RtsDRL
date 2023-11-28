@@ -8,15 +8,13 @@ namespace ReinforcementLearning.Training
 {
     public class QLearning
     {
-        private Random random = new Random();
+        private static Random random = new Random();
 
-        public QLearning(QLearningArgs _args)
+        public static QLearningResult Learn(QLearningArgs _args)
         {
-            int nS = _args.Environment.ObservationSpace.Count;
-            int nA = _args.Environment.ActionSpace.Count;
-            double[,] Q = CreateQTable(nA, nS);
-
-
+            int nS = _args.Environment.ObservationSpaceSize;
+            int nA = _args.Environment.ActionSpaceSize;
+            double[,] qTable = CreateQTable(nA, nS);
 
             var alphas = Exploration.DecaySchedule(_args.InitAlpha, 
                 _args.MinAlpha, 
@@ -30,26 +28,53 @@ namespace ReinforcementLearning.Training
 
             for(int e = 0; e < _args.NEpisodes; e++)
             {
-
+                int state = _args.Environment.Reset();
                 bool done = false;
+                while (!done)
+                {
+                    int action = SelectAction(random, state, qTable, epsilons[e]);
+                    StepResult stepResult = _args.Environment.Step(action);
+                    done = stepResult.Done;
+                    double tdTarget = done ? 0 : stepResult.Reward + _args.Gamma * Commons.GetMaxValueOfRow(qTable, stepResult.NextState);
+                    double tdError = tdTarget - qTable[state, action];
+                    qTable[state, action] = qTable[state, action] + alphas[e] * tdError;
+                    state = stepResult.NextState;
+                }
             }
+
+            double[] stateValueFunction = Commons.FlattenMax(qTable);
+
+            Dictionary<int, int> pi = GetPolicy(qTable);
+
+            return new QLearningResult(qTable, stateValueFunction, pi);
         }
 
-        public double[,] CreateQTable(int _actionSpaceSize, int _observationsSpaceSize)
+        public static double[,] CreateQTable(int _actionSpaceSize, int _observationsSpaceSize)
         {
             return new double[_actionSpaceSize, _observationsSpaceSize];
         }
 
-        public int SelectAction(int _state, double[,] _qTable, double _epsilon)
+        public static int SelectAction(Random _random, int _state, double[,] _qTable, double _epsilon)
         {
-            if (random.NextDouble() > _epsilon)
+            if (_random.NextDouble() > _epsilon)
             {
                 return Commons.ArgMax(_qTable, _state);
             }
             else
             {
-                return random.Next(_qTable.GetLength(1));
+                return _random.Next(_qTable.GetLength(1));
             }
         }
+
+        private static Dictionary<int, int> GetPolicy(double[,] _qTable)
+        {
+            Dictionary<int, int> policy = new Dictionary<int, int>();
+            for (int s = 0; s < _qTable.GetLength(0); s++)
+            {
+                policy[s] = Commons.ArgMax(_qTable, s);
+            }
+            return policy;
+        }
+
     }
 }

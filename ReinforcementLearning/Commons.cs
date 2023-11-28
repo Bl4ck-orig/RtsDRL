@@ -1,9 +1,25 @@
 ﻿using System;
+using System.IO.Compression;
 
 namespace ReinforcementLearning
 {
     public static class Commons
     {
+        public static double[] FlattenMax(double[,] _array)
+        {
+            if (_array == null)
+                throw new ArgumentNullException();
+
+            double[] flattendMax = new double[_array.GetLength(0)];
+
+            for(int i = 0; i < flattendMax.Length; i++)
+            {
+                flattendMax[i] = _array[i,ArgMax(_array, i)];
+            }
+
+            return flattendMax;
+        }
+
         public static int ArgMax<T>(T[,] _array, int _row) where T : IComparable
         {
             int maxIndex = 0;
@@ -98,6 +114,32 @@ namespace ReinforcementLearning
             for (int i = 0; i < copy.Length; i++)
                 copy[i] += _scalar;
             return copy;
+        }
+
+        public static double GetMaxValueOfRow(double[,] _array, int _row)
+        {
+            if (_array == null)
+            {
+                throw new ArgumentNullException(nameof(_array));
+            }
+
+            if (_row < 0 || _row >= _array.GetLength(0))
+            {
+                throw new ArgumentOutOfRangeException(nameof(_row));
+            }
+
+            double maxValue = double.MinValue;
+            int columns = _array.GetLength(1);
+
+            for (int i = 0; i < columns; i++)
+            {
+                if (_array[_row, i] > maxValue)
+                {
+                    maxValue = _array[_row, i];
+                }
+            }
+
+            return maxValue;
         }
     }
 }
