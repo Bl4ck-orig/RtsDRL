@@ -54,9 +54,10 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Training\QLearning.cs" />
-    <Compile Include="Commons.cs" />
+    <Compile Include="Utils\Commons.cs" />
     <Compile Include="Training\QLearningArgs.cs" />
     <Compile Include="Training\QLearningResult.cs" />
+    <Compile Include="Utils\Dialogue.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

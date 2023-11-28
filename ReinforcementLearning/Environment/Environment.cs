@@ -27,6 +27,7 @@ namespace ReinforcementLearning
         public StepResult Step(int _action)
         {
             (int, double) actResult = P[new StateAction(State, _action)].Act(prng);
+            State = actResult.Item1;
             bool done = TerminalStates.Contains(actResult.Item1);
             return new StepResult(actResult.Item1, actResult.Item2, done);
         }

@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ReinforcementLearning.Training;
+using System;
 
 namespace ReinforcementLearning
 {
@@ -10,6 +7,11 @@ namespace ReinforcementLearning
     {
         static void Main(string[] args)
         {
+            QLearningResult qLearningResult = QLearning.Learn(new QLearningArgs(new EnvironemntFrozenLake()));
+
+            Console.WriteLine("\n" + qLearningResult.ToString());
+
+            Console.ReadLine();
         }
     }
 }

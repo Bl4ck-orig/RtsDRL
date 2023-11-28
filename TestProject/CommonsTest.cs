@@ -249,6 +249,45 @@ namespace TestProject.Training
             // Assert
             CollectionAssert.AreEqual(expected, actual);
         }
+        [TestMethod]
+        public void Commons_GetMaxValueOfColumn_ValidColumn_ReturnsMaxValue()
+        {
+            double[,] array = { { 1.5, 2.3, 3.7 }, { 4.2, 5.1, 6.6 }, { 7.0, 8.8, 9.9 } };
+            var result = Commons.GetMaxValueOfColumn(array, 1);
+            Assert.AreEqual(8.8, result);
+        }
+
+
+        [TestMethod]
+        public void Commons_GetMaxValueOfColumn_FirstColumn_ReturnsMaxValue()
+        {
+            double[,] array = { { 1.5, 2.3, 3.7 }, { 4.2, 5.1, 6.6 }, { 7.0, 8.8, 9.9 } };
+            var result = Commons.GetMaxValueOfColumn(array, 0);
+            Assert.AreEqual(7.0, result);
+        }
+
+        [TestMethod]
+        public void Commons_GetMaxValueOfColumn_LastColumn_ReturnsMaxValue()
+        {
+            double[,] array = { { 1.5, 2.3, 3.7 }, { 4.2, 5.1, 6.6 }, { 7.0, 8.8, 9.9 } };
+            var result = Commons.GetMaxValueOfColumn(array, 2);
+            Assert.AreEqual(9.9, result);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void Commons_GetMaxValueOfColumn_NullArray_ThrowsException()
+        {
+            Commons.GetMaxValueOfColumn(null, 0);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentOutOfRangeException))]
+        public void Commons_GetMaxValueOfColumn_ColumnOutOfRange_ThrowsException()
+        {
+            double[,] array = { { 1.5, 2.3, 3.7 } };
+            Commons.GetMaxValueOfColumn(array, 3);
+        }
 
         [TestMethod]
         public void Commons_FlattenMax_WithEmptyArray_ReturnsEmptyArray()

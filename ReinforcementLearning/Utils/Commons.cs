@@ -141,5 +141,32 @@ namespace ReinforcementLearning
 
             return maxValue;
         }
+
+        public static double GetMaxValueOfColumn(double[,] _array, int _column)
+        {
+            if (_array == null)
+            {
+                throw new ArgumentNullException(nameof(_array));
+            }
+
+            if (_column < 0 || _column >= _array.GetLength(1))
+            {
+                throw new ArgumentOutOfRangeException(nameof(_column));
+            }
+
+            double maxValue = double.MinValue;
+            int rows = _array.GetLength(0);
+
+            for (int i = 0; i < rows; i++)
+            {
+                if (_array[i, _column] > maxValue)
+                {
+                    maxValue = _array[i, _column];
+                }
+            }
+
+            return maxValue;
+        }
+
     }
 }
