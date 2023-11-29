@@ -37,6 +37,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -45,6 +46,33 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Environment\Rts\EnvironmentRts.cs" />
+    <Compile Include="Environment\Rts\EEnemyOperation.cs" />
+    <Compile Include="Environment\Rts\EnemyOperationGhoulAmountHandler.cs" />
+    <Compile Include="Environment\Rts\EWeapon.cs" />
+    <Compile Include="Environment\Rts\IEnemyAiOperationDataProvider.cs" />
+    <Compile Include="Environment\Rts\IEnemyOperationGhoulAmountHandler.cs" />
+    <Compile Include="Environment\Rts\Operations\AttackChurchOperation.cs" />
+    <Compile Include="Environment\Rts\Operations\AttackOperation.cs" />
+    <Compile Include="Environment\Rts\Operations\BalanceGhoulsPerTribesOperation.cs" />
+    <Compile Include="Environment\Rts\Operations\BuildStaffWorkshopOperation.cs" />
+    <Compile Include="Environment\Rts\Operations\BuildSwordWorkshopOperation.cs" />
+    <Compile Include="Environment\Rts\Operations\BuildTribeOperation.cs" />
+    <Compile Include="Environment\Rts\Operations\BuildWorkshopOperation.cs" />
+    <Compile Include="Environment\Rts\Operations\DefendOperation.cs" />
+    <Compile Include="Environment\Rts\Operations\EnemyOperation.cs" />
+    <Compile Include="Environment\Rts\Operations\EnemyOperationPredictionResult.cs" />
+    <Compile Include="Environment\Rts\Operations\FeedGhoulsOperation.cs" />
+    <Compile Include="Environment\Rts\Operations\LeaveBuildingOperation.cs" />
+    <Compile Include="Environment\Rts\Operations\NoOperation.cs" />
+    <Compile Include="Environment\Rts\Operations\OperationFactory.cs" />
+    <Compile Include="Environment\Rts\Operations\PickupWeaponsOperation.cs" />
+    <Compile Include="Environment\Rts\Operations\ProduceStaffOperation.cs" />
+    <Compile Include="Environment\Rts\Operations\ProduceSwordOperation.cs" />
+    <Compile Include="Environment\Rts\Operations\ProduceWeaponOperation.cs" />
+    <Compile Include="Environment\Rts\Operations\SendGhoulsToTribeAgressiveOperation.cs" />
+    <Compile Include="Environment\Rts\Operations\SendGhoulsToTribeDefensiveOperation.cs" />
+    <Compile Include="Environment\Rts\RtsConfig.cs" />
     <Compile Include="Environment\StateAction.cs" />
     <Compile Include="Environment\StepAction.cs" />
     <Compile Include="Environment\EnvironemntFrozenLake.cs" />
@@ -67,6 +95,7 @@
     <Compile Include="QLearnings\QLearningArgs.cs" />
     <Compile Include="QLearnings\QLearningResult.cs" />
     <Compile Include="Utils\Dialogue.cs" />
+    <Compile Include="Utils\Vector3.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

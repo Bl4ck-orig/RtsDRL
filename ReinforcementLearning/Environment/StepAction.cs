@@ -24,7 +24,7 @@ namespace ReinforcementLearning
             this.transitionRewards = transitionRewards;
         }
 
-        public (T, double) Act(Random _prng)
+        public (T NextState, double Reward) Act(Random _prng)
         {
             T nextState = GetNextState(transitionProbabilities, _prng.NextDouble());
 

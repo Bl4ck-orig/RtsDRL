@@ -5,7 +5,7 @@ namespace ReinforcementLearning.Training
 {
     public class QLearning
     {
-        private static Random random = new Random();
+        private static Random prng = new Random();
 
         public static QLearningResult Learn(QLearningArgs _args)
         {
@@ -27,12 +27,12 @@ namespace ReinforcementLearning.Training
             {
                 Dialogue.PrintProgress(e, _args.NEpisodes, e == 0);
 
-                int state = _args.Environment.Reset();
+                int state = _args.Environment.Reset(prng);
                 bool done = false;
                 while (!done)
                 {
-                    int action = SelectAction(random, state, qTable, epsilons[e]);
-                    StepResult<int> stepResult = _args.Environment.Step(action);
+                    int action = SelectAction(prng, state, qTable, epsilons[e]);
+                    StepResult<int> stepResult = _args.Environment.Step(action, prng);
                     done = stepResult.Done;
                     double tdTarget = stepResult.Reward + _args.Gamma * Commons.GetMaxValueOfRow(qTable, stepResult.NextState);
                     if(done)

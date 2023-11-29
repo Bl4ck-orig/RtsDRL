@@ -84,7 +84,7 @@ namespace ReinforcementLearning
         private (double[] NextState, bool Done) InteractionStep(double[] _state, IFcq _model, Environment<double[]> _environment)
         {
             int action = trainingStrategy.SelectAction(_state, _model, prng);
-            StepResult<double[]> stepResult = _environment.Step(action);
+            StepResult<double[]> stepResult = _environment.Step(action, prng);
             bool isFailure = stepResult.Done && !stepResult.IsTruncated;
             Experience<double[]> experience = new Experience<double[]>(_state, 
                 action, 
@@ -110,7 +110,7 @@ namespace ReinforcementLearning
 
             for (int episode = 1; !isTrainingFinished; episode++)
             {
-                double[] state = environment.Reset();
+                double[] state = environment.Reset(prng);
                 bool isTerminal = false;
                 episodeRewards.Add(0.0f);
                 episodeTimeStep.Add(0);

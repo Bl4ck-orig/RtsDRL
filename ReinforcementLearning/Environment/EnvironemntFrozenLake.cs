@@ -1,39 +1,20 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace ReinforcementLearning
 {
     public class EnvironemntFrozenLake : Environment<int>
     {
-        //public override List<int> ObservationSpace { get; protected set; } = Enumerable.Range(0, 16).ToList();
+        public override int ObservationSpaceSize { get => observationSpace.Count; }
 
-        //public override List<int> ActionSpace { get; protected set; } = Enumerable.Range(0, 4).ToList();
-
-        //public override int State { protected set; }
-        public override int ObservationSpaceSize { get => ObservationSpace.Count; }
-
-        public override int ActionSpaceSize { get => ActionSpace.Count; }
+        public override int ActionSpaceSize { get => actionSpace.Count; }
 
         public override int State { get; protected set; }
 
-        protected override List<int> ObservationSpace { get; set; } = Enumerable.Range(0, 16).ToList();
-        protected override List<int> ActionSpace { get; set; } = new List<int>()
-        {
-            0, // Left
-            1, // Up
-            2, // Right
-            3, // Down
-        };
         protected override List<int> InitialStates { get; set; } = new List<int>() { 0 };
-        protected override List<int> TerminalStates { get; set; } = new List<int>()
-        {
-            5,
-            7,
-            11,
-            12,
-            15,
-        };
-        protected override Dictionary<StateAction<int>, StepAction<int>> P { get; set; } = new Dictionary<StateAction<int>, StepAction<int>>()
+
+        private Dictionary<StateAction<int>, StepAction<int>> p { get; set; } = new Dictionary<StateAction<int>, StepAction<int>>()
         {
             // State 0 actions
             { new StateAction<int>(0, 0), new StepAction<int>(new List<(double, int)>() { (0.666f, 0), (0.333f, 4) }, new Dictionary<int, double>() { { 0, 0 }, { 4, 0 } }) },
@@ -134,5 +115,28 @@ namespace ReinforcementLearning
 
         protected override int TimeStepLimit => int.MaxValue;
 
+        private List<int> observationSpace = Enumerable.Range(0, 16).ToList();
+        private List<int> actionSpace = new List<int>()
+        {
+            0, // Left
+            1, // Up
+            2, // Right
+            3, // Down
+        };
+
+        private List<int> terminalStates = new List<int>()
+        {
+            5,
+            7,
+            11,
+            12,
+            15,
+        };
+
+        protected override (int NextState, double Reward, bool IsTerminal) Act(int _action, Random _prng)
+        {
+            var stepResult = p[new StateAction<int>(State, _action)].Act(_prng);
+            return (stepResult.NextState, stepResult.Reward, terminalStates.Contains(stepResult.NextState));
+        }
     }
 }
