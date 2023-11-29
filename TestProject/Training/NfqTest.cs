@@ -15,7 +15,7 @@ namespace TestProject.Training
 
         private T GetPrivateFieldValue<T>(object obj, string fieldName)
         {
-            FieldInfo field = GetPrivateField<Fcq>(obj, fieldName);
+            FieldInfo field = GetPrivateField<NeuralNetwork>(obj, fieldName);
             return (T)field.GetValue(obj);
         }
 
@@ -26,7 +26,7 @@ namespace TestProject.Training
             int outputSize = 5;
             int batchSize = 3;
 
-            var fcq = new Fcq(inputSize, outputSize, batchSize);
+            var fcq = new NeuralNetwork(inputSize, outputSize, batchSize, new System.Random());
 
             double[,] inputLayer = GetPrivateFieldValue<double[,]>(fcq, "inputLayer");
             double[,] hiddenWeights = GetPrivateFieldValue<double[,]>(fcq, "hiddenWeights");

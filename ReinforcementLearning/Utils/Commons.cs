@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO.Compression;
 using System.Linq;
 
@@ -19,6 +20,24 @@ namespace ReinforcementLearning
             }
 
             return flattendMax;
+        }
+
+        public static int ArgMax<T>(T[] vector) where T : IComparable
+        {
+            if (vector == null || vector.Length == 0)
+            {
+                throw new ArgumentException("Vector cannot be null or empty.");
+            }
+
+            int maxIndex = 0;
+            for (int i = 1; i < vector.Length; i++)
+            {
+                if (vector[i].CompareTo(vector[maxIndex]) > 0)
+                {
+                    maxIndex = i;
+                }
+            }
+            return maxIndex;
         }
 
         public static int ArgMax<T>(T[,] _array, int _row) where T : IComparable
@@ -169,7 +188,6 @@ namespace ReinforcementLearning
             return maxValue;
         }
 
-        #region Arithmetics -----------------------------------------------------------------
         public static double[,] DotProduct(this double[,] _matrix1, double[,] _matrix2)
         {
             var matrix1Rows = _matrix1.GetLength(0);
@@ -310,9 +328,69 @@ namespace ReinforcementLearning
 
             return c;
         }
-        #endregion -----------------------------------------------------------------
 
-        #region Element Maniuplation -----------------------------------------------------------------
+        public static double[,] AddVectorToMatrix(double[,] matrix, double[] vector)
+        {
+            int rows = matrix.GetLength(0);
+            int cols = matrix.GetLength(1);
+
+            if (vector.Length != cols)
+            {
+                throw new ArgumentException("Length of vector must match the number of columns in the matrix.");
+            }
+
+            double[,] result = new double[rows, cols];
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < cols; j++)
+                {
+                    result[i, j] = matrix[i, j] + vector[j];
+                }
+            }
+
+            return result;
+        }
+
+        public static double[,] AddMatrixBy(double[,] matrix, double value)
+        {
+            int rows = matrix.GetLength(0);
+            int cols = matrix.GetLength(1);
+
+            double[,] result = new double[rows, cols];
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < cols; j++)
+                {
+                    result[i, j] = matrix[i, j] + value;
+                }
+            }
+
+            return result;
+        }
+
+        public static double[,] MultiplyMatrixByArray(double[,] matrix, double[] array)
+        {
+            int rows = matrix.GetLength(0);
+            int cols = matrix.GetLength(1);
+
+            if (array.Length != rows)
+            {
+                throw new ArgumentException("Length of array must match the number of rows in the matrix.");
+            }
+
+            double[,] result = new double[rows, cols];
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < cols; j++)
+                {
+                    result[i, j] = matrix[i, j] * array[i];
+                }
+            }
+
+            return result;
+        }
+
+
         public static T[,] Transpose<T>(this T[,] matrix)
         {
             int w = matrix.GetLength(0);
@@ -361,8 +439,91 @@ namespace ReinforcementLearning
 
             return softmax;
         }
-        #endregion Element Maniuplation -----------------------------------------------------------------
+
+        public static T[,] Unsqueeze<T>(T[] array)
+        {
+            int length = array.Length;
+            T[,] result = new T[length, 1];
+
+            for (int i = 0; i < length; i++)
+            {
+                result[i, 0] = array[i];
+            }
+
+            return result;
+        }
+
+        public static List<double> SubtractFromValue(double value, List<double> inputList)
+        {
+            return inputList.Select(x => value - x).ToList();
+        }
+
+        public static double[,] ToMatrix(List<double[]> _value)
+        {
+            if (_value == null || _value.Count == 0 || _value[0].Length == 0)
+            {
+                return new double[0, 0];
+            }
+
+            int rows = _value.Count;
+            int cols = _value[0].Length;
+            double[,] matrix = new double[rows, cols];
+
+            for (int i = 0; i < rows; i++)
+            {
+                if (_value[i].Length != cols)
+                {
+                    throw new ArgumentException("All arrays must have the same length");
+                }
+
+                for (int j = 0; j < cols; j++)
+                {
+                    matrix[i, j] = _value[i][j];
+                }
+            }
+
+            return matrix;
+        }
+
+        public static double[,] SubtractVectorFromMatrixColumns(double[] vector, double[,] matrix)
+        {
+            int rows = matrix.GetLength(0);
+            int cols = matrix.GetLength(1);
+
+            if (vector.Length != cols)
+            {
+                throw new ArgumentException("Length of the vector must match the number of columns in the matrix.");
+            }
+
+            double[,] result = new double[rows, cols];
+
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < cols; j++)
+                {
+                    result[i, j] = matrix[i, j] - vector[j];
+                }
+            }
+
+            return result;
+        }
+
+        public static double[,] Pow(double[,] matrix, int _power)
+        {
+            int rows = matrix.GetLength(0);
+            int cols = matrix.GetLength(1);
+
+            double[,] result = new double[rows, cols];
+
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < cols; j++)
+                {
+                    result[i, j] = Math.Pow(matrix[i, j], _power);
+                }
+            }
+
+            return result;
+        }
     }
-
-
 }

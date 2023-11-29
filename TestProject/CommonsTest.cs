@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ReinforcementLearning;
 using System;
+using System.Collections.Generic;
 
 namespace TestProject.Training
 {
@@ -24,6 +25,17 @@ namespace TestProject.Training
             Assert.AreEqual(argMaxRow0, 1);
             Assert.AreEqual(argMaxRow1, 0);
             Assert.AreEqual(argMaxRow2, 2);
+        }
+
+        [TestMethod]
+        public void Commons_ArgMax_ValidVector_ReturnsCorrectMaxIndex()
+        {
+            int[] vector = { 3, 8, 2, 5, 9, 1 };
+            int expectedMaxIndex = 4; // The maximum element (9) is at index 4
+
+            int actualMaxIndex = Commons.ArgMax(vector);
+
+            Assert.AreEqual(expectedMaxIndex, actualMaxIndex);
         }
 
         [TestMethod]
@@ -455,5 +467,210 @@ namespace TestProject.Training
             CollectionAssert.AreEqual(expectedReversed, actualReversed);
         }
 
+        [TestMethod]
+        public void Commons_Unsqueeze_EmptyDoubleArray_ReturnsEmpty2DArray()
+        {
+            double[] emptyArray = new double[0];
+            double[,] expected = new double[0, 1];
+
+            double[,] actual = Commons.Unsqueeze(emptyArray);
+
+            CollectionAssert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void Commons_Unsqueeze_SingleElementDoubleArray_ReturnsSingleRow2DArray()
+        {
+            double[] singleElementArray = { 42.0 };
+            double[,] expected = { { 42.0 } };
+
+            double[,] actual = Commons.Unsqueeze(singleElementArray);
+
+            CollectionAssert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void Commons_Unsqueeze_MultiElementDoubleArray_ReturnsCorrect2DArray()
+        {
+            double[] multiElementArray = { 1.0, 2.0, 3.0 };
+            double[,] expected = { { 1.0 }, { 2.0 }, { 3.0 } };
+
+            double[,] actual = Commons.Unsqueeze(multiElementArray);
+
+            CollectionAssert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void Commons_Unsqueeze_MultiElementIntArray_ReturnsCorrect2DArray()
+        {
+            int[] multiElementArray = { 1, 2, 3 };
+            int[,] expected = { { 1 }, { 2 }, { 3 } };
+
+            int[,] actual = Commons.Unsqueeze(multiElementArray);
+
+            CollectionAssert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void Commons_Unsqueeze_StringArray_ReturnsCorrect2DArray()
+        {
+            string[] stringArray = { "Hello", "World" };
+            string[,] expected = { { "Hello" }, { "World" } };
+
+            string[,] actual = Commons.Unsqueeze(stringArray);
+
+            CollectionAssert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void Commons_SubtractFromValue_ValidList_ReturnsCorrectlySubtractedValues()
+        {
+            // Arrange
+            double subtractValue = 1.0;
+            List<double> inputList = new List<double> { 0.2, 0.5, 0.8 };
+            List<double> expected = new List<double> { 0.8, 0.5, 0.2 };
+
+            // Act
+            List<double> result = Commons.SubtractFromValue(subtractValue, inputList);
+
+            // Assert
+            for(int i = 0; i < result.Count; i++)
+            {
+                Assert.AreEqual(expected[i], result[i], 1e-6);
+            }
+        }
+
+        [TestMethod]
+        public void Commons_MultiplyMatrixByArray_ValidInput_ReturnsCorrectlyMultipliedMatrix()
+        {
+            // Arrange
+            double[,] matrix = { { 1.0, 2.0 }, { 3.0, 4.0 } };
+            double[] array = { 0.5, 1.0 };
+            double[,] expected = { { 0.5, 1.0 }, { 3.0, 4.0 } };
+
+            // Act
+            double[,] result = Commons.MultiplyMatrixByArray(matrix, array);
+
+            // Assert
+            for (int i = 0; i < matrix.GetLength(0); i++)
+            {
+                for (int j = 0; j < matrix.GetLength(1); j++)
+                {
+                    Assert.AreEqual(expected[i, j], result[i, j], 1e-6, $"Mismatch at position [{i}, {j}]");
+                }
+            }
+        }
+
+        [TestMethod]
+        public void Commons_AddMatrixBy_ValidInput_ReturnsCorrectlyAddedMatrix()
+        {
+            // Arrange
+            double[,] matrix = { { 1.0, 2.0 }, { 3.0, 4.0 } };
+            double addValue = 1.5;
+            double[,] expected = { { 2.5, 3.5 }, { 4.5, 5.5 } };
+
+            // Act
+            double[,] result = Commons.AddMatrixBy(matrix, addValue);
+
+            // Assert
+            for (int i = 0; i < matrix.GetLength(0); i++)
+            {
+                for (int j = 0; j < matrix.GetLength(1); j++)
+                {
+                    Assert.AreEqual(expected[i, j], result[i, j], 1e-6, $"Mismatch at position [{i}, {j}]");
+                }
+            }
+        }
+
+        [TestMethod]
+        public void Commons_AddVectorToMatrix_ValidInput_ReturnsCorrectlyAddedMatrix()
+        {
+            // Arrange
+            double[,] matrix = { { 1.0, 2.0 }, { 3.0, 4.0 } };
+            double[] vector = { 1.5, 2.0 };
+            double[,] expected = { { 2.5, 4.0 }, { 4.5, 6.0 } };
+
+            // Act
+            double[,] result = Commons.AddVectorToMatrix(matrix, vector);
+
+            // Assert
+            for (int i = 0; i < matrix.GetLength(0); i++)
+            {
+                for (int j = 0; j < matrix.GetLength(1); j++)
+                {
+                    Assert.AreEqual(expected[i, j], result[i, j], 1e-6, $"Mismatch at position [{i}, {j}]");
+                }
+            }
+        }
+
+        [TestMethod]
+        public void Commons_ToMatrix_ValidList_ReturnsCorrectMatrix()
+        {
+            List<double[]> list = new List<double[]>
+        {
+            new double[] { 1.0, 2.0 },
+            new double[] { 3.0, 4.0 }
+        };
+            double[,] expectedMatrix = { { 1.0, 2.0 }, { 3.0, 4.0 } };
+
+            double[,] actualMatrix = Commons.ToMatrix(list);
+
+            CollectionAssert.AreEqual(expectedMatrix, actualMatrix);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public void Commons_ToMatrix_InvalidList_ThrowsArgumentException()
+        {
+            List<double[]> list = new List<double[]>
+        {
+            new double[] { 1.0, 2.0 },
+            new double[] { 3.0 }
+        };
+
+            double[,] actualMatrix = Commons.ToMatrix(list);
+        }
+
+        [TestMethod]
+        public void Commons_SubtractVectorFromMatrixColumns_ValidInput_ReturnsCorrectResult()
+        {
+            // Setup
+            double[] vector = { 1, 2 };
+            double[,] matrix = { { 3, 5 }, { 4, 6 } };
+            double[,] expected = { { 2, 3 }, { 3, 4 } };
+
+            // Act
+            double[,] actual = Commons.SubtractVectorFromMatrixColumns(vector, matrix);
+
+            // Assert
+            for (int i = 0; i < matrix.GetLength(0); i++)
+            {
+                for (int j = 0; j < matrix.GetLength(1); j++)
+                {
+                    Assert.AreEqual(expected[i, j], actual[i, j], 0.0001, $"Mismatch at element [{i}, {j}]");
+                }
+            }
+        }
+
+        [TestMethod]
+        public void Commons_Pow_ValidMatrixAndPower_ReturnsCorrectlyPoweredMatrix()
+        {
+            // Setup
+            double[,] matrix = { { 2, 3 }, { 4, 5 } };
+            int power = 2;
+            double[,] expected = { { 4, 9 }, { 16, 25 } };
+
+            // Act
+            double[,] actual = Commons.Pow(matrix, power);
+
+            // Assert
+            for (int i = 0; i < matrix.GetLength(0); i++)
+            {
+                for (int j = 0; j < matrix.GetLength(1); j++)
+                {
+                    Assert.AreEqual(expected[i, j], actual[i, j], 0.0001, $"Mismatch at element [{i}, {j}]");
+                }
+            }
+        }
     }
 }

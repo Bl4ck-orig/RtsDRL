@@ -51,9 +51,15 @@
     <Compile Include="Environment\Environment.cs" />
     <Compile Include="Environment\StepResult.cs" />
     <Compile Include="Exploration\Exploration.cs" />
-    <Compile Include="NFQ\Fcq.cs" />
+    <Compile Include="NFQ\EGreedyStrategy.cs" />
+    <Compile Include="NFQ\Experience.cs" />
+    <Compile Include="NFQ\GreedyStrategy.cs" />
+    <Compile Include="NFQ\IStrategy.cs" />
+    <Compile Include="NFQ\NeuralNetwork.cs" />
     <Compile Include="NFQ\IFcq.cs" />
     <Compile Include="NFQ\Nfq.cs" />
+    <Compile Include="NFQ\NfqArgs.cs" />
+    <Compile Include="NFQ\NfqResult.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QLearnings\QLearning.cs" />

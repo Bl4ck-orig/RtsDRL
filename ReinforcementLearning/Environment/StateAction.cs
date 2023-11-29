@@ -4,9 +4,9 @@ namespace ReinforcementLearning
     public readonly struct StateAction<T>
     {
         public readonly T State;
-        public readonly T Action;
+        public readonly int Action;
 
-        public StateAction(T state, T action)
+        public StateAction(T state, int action)
         {
             State = state;
             Action = action;

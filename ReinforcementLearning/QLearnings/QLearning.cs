@@ -55,8 +55,6 @@ namespace ReinforcementLearning.Training
             return new double[_observationsSpaceSize, _actionSpaceSize];
         }
 
-        
-
         public static int SelectAction(Random _random, int _state, double[,] _qTable, double _epsilon)
         {
             if (_random.NextDouble() > _epsilon)

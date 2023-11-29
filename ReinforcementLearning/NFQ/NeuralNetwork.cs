@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Linq;
+using System.Net.NetworkInformation;
 
 namespace ReinforcementLearning
 {
-    public class Fcq
+    public class NeuralNetwork : IFcq
     {
         private int inputSize;
         private int outputSize;
@@ -26,7 +27,7 @@ namespace ReinforcementLearning
         private double[,] outputLayerZ;
 
         private double[,] featureMatrix;
-        private double[,] rewardMatrix;
+        private double[,] errorMatrix;
         private double oneOverBatchSize;
 
         private double[,] changeInOutputLayerError;
@@ -38,10 +39,8 @@ namespace ReinforcementLearning
         private double[,] changeInHiddenBias;
 
         private int yieldAt = 100;
-        private int lastPredictionVectorIndex = 0;
-        private Random prng;
 
-        public Fcq(int _inputSize, int _outputSize, int _batchSize, int _seed = -1)
+        public NeuralNetwork(int _inputSize, int _outputSize, int _batchSize, Random _prng)
         {
             inputSize = _inputSize;
             outputSize = _outputSize;
@@ -59,18 +58,16 @@ namespace ReinforcementLearning
             outputWeights = new double[outputSize, hiddenLayerNodesAmount];
             outputBias = new double[outputSize, 1];
 
-            prng = _seed == -1 ? new Random() : new Random(_seed);
-
-            SetUpRandomNetwork();
+            SetUpRandomNetwork(_prng);
         }
 
-        private void SetUpRandomNetwork()
+        private void SetUpRandomNetwork(Random _prng)
         {
             for (int x = 0; x < hiddenWeights.GetLength(0); x++)
             {
                 for (int y = 0; y < hiddenWeights.GetLength(1); y++)
                 {
-                    hiddenWeights[x, y] = prng.NextDouble() - 0.5f;
+                    hiddenWeights[x, y] = _prng.NextDouble() - 0.5f;
                 }
             }
 
@@ -78,7 +75,7 @@ namespace ReinforcementLearning
             {
                 for (int y = 0; y < hiddenBias.GetLength(1); y++)
                 {
-                    hiddenBias[x, y] = prng.NextDouble() - 0.5f;
+                    hiddenBias[x, y] = _prng.NextDouble() - 0.5f;
                 }
             }
 
@@ -86,7 +83,7 @@ namespace ReinforcementLearning
             {
                 for (int y = 0; y < outputWeights.GetLength(1); y++)
                 {
-                    outputWeights[x, y] = prng.NextDouble() - 0.5f;
+                    outputWeights[x, y] = _prng.NextDouble() - 0.5f;
                 }
             }
 
@@ -94,7 +91,7 @@ namespace ReinforcementLearning
             {
                 for (int y = 0; y < outputBias.GetLength(1); y++)
                 {
-                    outputBias[x, y] = prng.NextDouble() - 0.5f;
+                    outputBias[x, y] = _prng.NextDouble() - 0.5f;
                 }
             }
         }
@@ -130,7 +127,15 @@ namespace ReinforcementLearning
         #endregion -----------------------------------------------------------------
 
         #region Getting Prediction -----------------------------------------------------------------
-        public int GetPrediction(double[,] _inputs)
+        public double[,] GetOutputMatrix(double[,] _inputs)
+        {
+            inputLayer = _inputs.Clone() as double[,];
+
+            ApplyForwardPropagation();
+            return outputLayer.Clone() as double[,];
+        }
+
+        public double[] GetHighestRewardOutputIndex(double[,] _inputs)
         {
             inputLayer = _inputs.Clone() as double[,];
 
@@ -138,7 +143,7 @@ namespace ReinforcementLearning
             return GetHighestRewardOutputIndex();
         }
 
-        public int GetPrediction(double[] _inputs)
+        public double[] GetPrediction(double[] _inputs)
         {
             for (int x = 0; x < inputLayer.GetLength(0); x++)
             {
@@ -149,53 +154,77 @@ namespace ReinforcementLearning
             }
 
             ApplyForwardPropagation();
-            return GetHighestRewardOutputIndex();
+            return GetHighestRewardRow();
         }
 
-
-        private int GetHighestRewardOutputIndex()
+        private double[] GetHighestRewardOutputIndex()
         {
-            double max = double.MinValue;
-            int index = 0;
+            double[] maxQValues = new double[batchSize];
 
-            for (int x = 0; x < outputLayer.GetLength(0); x++)
+            for (int i = 0; i < batchSize; i++)
             {
-                for (int y = 0; y < outputLayer.GetLength(1); y++)
+                double maxQValue = Double.MinValue;
+                for (int j = 0; j < outputSize; j++)
                 {
-                    if (outputLayer[x, y] < max)
-                        continue;
-
-                    max = outputLayer[x, y];
-                    index = x;
-                    lastPredictionVectorIndex = y;
+                    if (outputLayer[j, i] > maxQValue)
+                    {
+                        maxQValue = outputLayer[j, i];
+                    }
                 }
+                maxQValues[i] = maxQValue;
             }
 
-            return index;
+            return maxQValues;
         }
 
-        public double[] GetRewardsFromLastPrediction()
+
+        private double[] GetHighestRewardRow()
         {
-            double[] rewardVector = new double[outputLayer.GetLength(0)];
+            double maxMean = double.MinValue;
+            double[] maxRow = new double[outputSize];
 
-            for (int x = 0; x < outputLayer.GetLength(0); x++)
+            for (int y = 0; y < outputLayer.GetLength(1); y++)
             {
-                rewardVector[x] = outputLayer[x, lastPredictionVectorIndex];
+                double[] row = new double[outputSize];
+
+                for (int x = 0; x < outputSize; x++)
+                {
+                    row[x] = outputLayer[x, y];
+                }
+
+                double mean = Mean(row);
+                if (mean < maxMean)
+                    continue;
+
+                maxMean = mean;
+                maxRow = row;
             }
 
-            return rewardVector;
+            return maxRow;
         }
+
+        private double Mean(double[] _vector) => _vector.Sum() / _vector.Length;
+
         #endregion -----------------------------------------------------------------
 
         #region Training -----------------------------------------------------------------
+        public void Backwards(double[,] _errorMatrix,
+            double _learningRate)
+        {
+            errorMatrix = _errorMatrix;
+            learningRate = _learningRate;
+
+            ApplyBackPropagation();
+        }
+
         public void TrainModel(double[,] _featureMatrix, 
-            double[,] _rewardMatrix,
+            double[,] _errorMatrix,
             int _iterations, 
             float _learningRate)
         {
             featureMatrix = _featureMatrix;
             inputLayer = _featureMatrix.Clone() as double[,];
-            rewardMatrix = _rewardMatrix;
+            errorMatrix = _errorMatrix;
             learningRate = _learningRate;
 
             Console.WriteLine("Starting training of " + _iterations + " iterations");
@@ -213,7 +242,7 @@ namespace ReinforcementLearning
             Console.WriteLine("Finished with accuracy of = " + GetAccuracy());
         }
 
-        private void ApplyBackPropagation()
+        public void ApplyBackPropagation()
         {
             BackPropagateOutputLayer();
             BackPropagateHiddenLayer();
@@ -230,7 +259,7 @@ namespace ReinforcementLearning
 
         private void BackPropagateOutputLayerError()
         {
-            changeInOutputLayerError = outputLayer.Subtract(rewardMatrix);
+            changeInOutputLayerError = outputLayer.Subtract(errorMatrix);
         }
 
         private void BackPropagateOutputLayerWeights()
@@ -301,7 +330,7 @@ namespace ReinforcementLearning
 
         private double ReluDerivative(double _value) => (_value < 0) ? 0f : 1f;
 
-        private void AdjustWeightsAndBiases()
+        public void AdjustWeightsAndBiases()
         {
             hiddenWeights = hiddenWeights.Subtract(changeInHiddenLayerWeights.Multiply(learningRate));
             hiddenBias = hiddenBias.Subtract(changeInHiddenBias.Multiply(learningRate));
@@ -328,9 +357,9 @@ namespace ReinforcementLearning
                         predictionIndex = x;
                     }
 
-                    if (rewardMatrix[x, y] > rewardMatrixMax)
+                    if (errorMatrix[x, y] > rewardMatrixMax)
                     {
-                        rewardMatrixMax = rewardMatrix[x, y];
+                        rewardMatrixMax = errorMatrix[x, y];
                         correctIndex = x;
                     }
                 }

@@ -10,7 +10,12 @@ namespace ReinforcementLearning
         //public override List<int> ActionSpace { get; protected set; } = Enumerable.Range(0, 4).ToList();
 
         //public override int State { protected set; }
+        public override int ObservationSpaceSize { get => ObservationSpace.Count; }
+
+        public override int ActionSpaceSize { get => ActionSpace.Count; }
+
         public override int State { get; protected set; }
+
         protected override List<int> ObservationSpace { get; set; } = Enumerable.Range(0, 16).ToList();
         protected override List<int> ActionSpace { get; set; } = new List<int>()
         {
@@ -126,5 +131,8 @@ namespace ReinforcementLearning
             { new StateAction<int>(15, 2), new StepAction<int>(new List<(double, int)>() { (1.0f, 15) }, new Dictionary<int, double>() { { 15, 0.0f } }) },
             { new StateAction<int>(15, 3), new StepAction<int>(new List<(double, int)>() { (1.0f, 15) }, new Dictionary<int, double>() { { 15, 0.0f } }) },
         };
+
+        protected override int TimeStepLimit => int.MaxValue;
+
     }
 }
