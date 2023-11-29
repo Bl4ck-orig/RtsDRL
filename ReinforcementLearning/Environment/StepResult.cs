@@ -1,12 +1,12 @@
 ﻿namespace ReinforcementLearning
 {
-    public struct StepResult
+    public struct StepResult<T>
     {
-        public int NextState { get; private set; }
+        public T NextState { get; private set; }
         public double Reward { get; private set; }
         public bool Done { get; set; }
 
-        public StepResult(int nextState, double reward, bool done)
+        public StepResult(T nextState, double reward, bool done)
         {
             NextState = nextState;
             Reward = reward;

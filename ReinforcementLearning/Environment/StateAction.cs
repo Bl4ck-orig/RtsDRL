@@ -1,12 +1,12 @@
 ﻿
 namespace ReinforcementLearning
 {
-    public readonly struct StateAction
+    public readonly struct StateAction<T>
     {
-        public readonly int State;
-        public readonly int Action;
+        public readonly T State;
+        public readonly T Action;
 
-        public StateAction(int state, int action)
+        public StateAction(T state, T action)
         {
             State = state;
             Action = action;

@@ -4,17 +4,17 @@ using System.Linq;
 
 namespace ReinforcementLearning
 {
-    public readonly struct StepAction
+    public readonly struct StepAction<T>
     {
-        private readonly List<(double, int)> transitionProbabilities;
-        private readonly Dictionary<int, double> transitionRewards;
+        private readonly List<(double, T)> transitionProbabilities;
+        private readonly Dictionary<T, double> transitionRewards;
 
-        public StepAction(List<(double, int)> transitionProbabilities, Dictionary<int, double> transitionRewards)
+        public StepAction(List<(double, T)> transitionProbabilities, Dictionary<T, double> transitionRewards)
         {
             if (transitionProbabilities.Any(x => !transitionRewards.ContainsKey(x.Item2)))
                 throw new ArgumentException("Transition probabilites and transition rewards do not match");
 
-            if (transitionRewards.Any(x => !transitionProbabilities.Any(y => y.Item2 == x.Key)))
+            if (transitionRewards.Any(x => !transitionProbabilities.Any(y => y.Item2.Equals(x.Key))))
                 throw new ArgumentException("Transition probabilites and transition rewards do not match");
 
             this.transitionProbabilities = transitionProbabilities
@@ -24,14 +24,14 @@ namespace ReinforcementLearning
             this.transitionRewards = transitionRewards;
         }
 
-        public (int, double) Act(Random _prng)
+        public (T, double) Act(Random _prng)
         {
-            int nextState = GetNextState(transitionProbabilities, _prng.NextDouble());
+            T nextState = GetNextState(transitionProbabilities, _prng.NextDouble());
 
             return (nextState, transitionRewards[nextState]);
         }
 
-        private static int GetNextState(List<(double, int)> transitionProbabilities, double _random)
+        private static T GetNextState(List<(double, T)> transitionProbabilities, double _random)
         {
             double total = 0f;
             int transitionIndex = 0;

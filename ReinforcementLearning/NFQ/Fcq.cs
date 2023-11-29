@@ -124,12 +124,20 @@ namespace ReinforcementLearning
         private void ForwardPropagateOutputLayer()
         {
             outputLayerZ = outputWeights.DotProduct(hiddenLayer).AddVector(outputBias);
-            // Linear regression:
+            // Cloning for Linear regression
             outputLayer = outputLayerZ.Clone() as double[,];
         }
         #endregion -----------------------------------------------------------------
 
         #region Getting Prediction -----------------------------------------------------------------
+        public int GetPrediction(double[,] _inputs)
+        {
+            inputLayer = _inputs.Clone() as double[,];
+
+            ApplyForwardPropagation();
+            return GetHighestRewardOutputIndex();
+        }
+
         public int GetPrediction(double[] _inputs)
         {
             for (int x = 0; x < inputLayer.GetLength(0); x++)

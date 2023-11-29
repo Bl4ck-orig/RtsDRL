@@ -3,33 +3,33 @@ using System.Collections.Generic;
 
 namespace ReinforcementLearning
 {
-    public abstract class Environment
+    public abstract class Environment<T>
     {
         private Random prng = new Random();
 
-        protected abstract List<int> ObservationSpace { get; set; }
-        protected abstract List<int> ActionSpace  { get; set; }
-        public abstract int State { get; protected set; }
-        protected abstract List<int> InitialStates { get; set; }
-        protected abstract List<int> TerminalStates { get; set; }
-        protected abstract Dictionary<StateAction, StepAction> P { get; set; } 
+        protected abstract List<T> ObservationSpace { get; set; }
+        protected abstract List<T> ActionSpace  { get; set; }
+        public abstract T State { get; protected set; }
+        protected abstract List<T> InitialStates { get; set; }
+        protected abstract List<T> TerminalStates { get; set; }
+        protected abstract Dictionary<StateAction<T>, StepAction<T>> P { get; set; } 
 
 
         public int ObservationSpaceSize { get => ObservationSpace.Count; }
 
         public int ActionSpaceSize { get => ActionSpace.Count; }
 
-        public int Reset()
+        public T Reset()
         {
             return State = InitialStates[prng.Next(InitialStates.Count)];
         }
 
-        public StepResult Step(int _action)
+        public StepResult<T> Step(T _action)
         {
-            (int, double) actResult = P[new StateAction(State, _action)].Act(prng);
+            (T, double) actResult = P[new StateAction<T>(State, _action)].Act(prng);
             State = actResult.Item1;
             bool done = TerminalStates.Contains(actResult.Item1);
-            return new StepResult(actResult.Item1, actResult.Item2, done);
+            return new StepResult<T>(actResult.Item1, actResult.Item2, done);
         }
 
     }

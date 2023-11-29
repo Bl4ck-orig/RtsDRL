@@ -32,9 +32,11 @@ namespace ReinforcementLearning.Training
                 while (!done)
                 {
                     int action = SelectAction(random, state, qTable, epsilons[e]);
-                    StepResult stepResult = _args.Environment.Step(action);
+                    StepResult<int> stepResult = _args.Environment.Step(action);
                     done = stepResult.Done;
-                    double tdTarget = stepResult.Reward + _args.Gamma * Commons.GetMaxValueOfRow(qTable, stepResult.NextState) * (done ? 0 : 1);
+                    double tdTarget = stepResult.Reward + _args.Gamma * Commons.GetMaxValueOfRow(qTable, stepResult.NextState);
+                    if(done)
+                        tdTarget = 0;
                     double tdError = tdTarget - qTable[state, action];
                     qTable[state, action] = qTable[state, action] + alphas[e] * tdError;
                     state = stepResult.NextState;

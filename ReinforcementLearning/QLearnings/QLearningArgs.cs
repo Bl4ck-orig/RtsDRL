@@ -3,7 +3,7 @@ namespace ReinforcementLearning.Training
 {
     public readonly struct QLearningArgs
     {
-        public readonly Environment Environment;
+        public readonly Environment<int> Environment;
         public readonly double Gamma;
         public readonly double InitAlpha;
         public readonly double MinAlpha;
@@ -13,7 +13,7 @@ namespace ReinforcementLearning.Training
         public readonly double EpsilonDecayRatio;
         public readonly int NEpisodes;
 
-        public QLearningArgs(Environment environment,
+        public QLearningArgs(Environment<int> environment,
             double gamma = 1.0f,
             double initAlpha = 0.5f,
             double minAlpha = 0.01f,

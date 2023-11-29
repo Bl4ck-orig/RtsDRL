@@ -32,7 +32,7 @@ namespace TestProject.Environment
                 (0.5f, 1),
             };
 
-            StepAction stepAction = new StepAction(transitionProbabilities, transitionRewards);
+            StepAction<int> stepAction = new StepAction<int>(transitionProbabilities, transitionRewards);
             PrivateObject privateStepAction = new PrivateObject(stepAction);
 
             List<(double, int)> result = (List<(double, int)>)privateStepAction.GetField("transitionProbabilities");
@@ -53,7 +53,7 @@ namespace TestProject.Environment
             (0.5, 3)   // 50% chance for state 3
         };
 
-            PrivateType privateType = new PrivateType(typeof(StepAction));
+            PrivateType privateType = new PrivateType(typeof(StepAction<int>));
 
             // Test different scenarios with different _random values
 
