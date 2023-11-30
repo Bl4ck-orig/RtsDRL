@@ -9,16 +9,16 @@ namespace ReinforcementLearning
         public const int MAX_WEAPONS = 40;
         private const int MAX_GHOULS = 40;
 
-        public const double AMOUNT_OF_GHOULS_FOR_BUILDING_PERCENT = 0.5f;
+        public const double AMOUNT_OF_GHOULS_FOR_BUILDING_PERCENT = 0.15f;
         public const double AMOUNT_OF_GHOULS_FOR_ATTACK_PERCENT = 0.25f;
-        public const double AMOUNT_OF_GHOULS_FOR_PICKUP_WEAPONS_PERCENT = 0.5f;
+        public const double AMOUNT_OF_GHOULS_FOR_PICKUP_WEAPONS_PERCENT = 0.25f;
         public const double AMOUNT_OF_GHOULS_FOR_TRIBE_TAKEOVER_PERCENT = 0.25f;
-        public const int MIN_AMOUNT_OF_GHOULS_FOR_TRIBE_TAKE_OVER = 2;
+        public const int MIN_AMOUNT_OF_GHOULS_FOR_TRIBE_TAKE_OVER = 5;
         public const int MIN_AMOUNT_OF_GHOULS_FOR_DEFENSIVE_TRIBE_TAKE_OVER = 2;
-        public const int MIN_AMOUNT_OF_GHOULS_FOR_ATTACK = 2;
+        public const int MIN_AMOUNT_OF_GHOULS_FOR_ATTACK = 5;
 
-        private const double DEFEAT_REWARD = -10.0f;
-        private const double VICTORY_REWARD = 10.0f;
+        private const double DEFEAT_REWARD = -50.0f;
+        private const double VICTORY_REWARD = 50.0f;
 
         private const double GHOULS_IN_DANGER_INCREASE_CHANCE = 0.01f;
         private const double GHOULS_IN_DANGER_KILL_CHANCE = 0.05f;
@@ -63,30 +63,30 @@ namespace ReinforcementLearning
 
         public Dictionary<EEnemyInput, EnemyVariable> Variables { get; private set; } = new Dictionary<EEnemyInput, EnemyVariable>()
         {
-            {EEnemyInput.TotalGhouls, new EnemyVariable(0.0f, 1.0f) },
-            {EEnemyInput.IdlingGhouls, new EnemyVariable(0.0f, 1.0f) },
-            {EEnemyInput.GhoulsInDanger, new EnemyVariable(0.0f, 1.0f) },
-            {EEnemyInput.HungryIdlingGhouls, new EnemyVariable(0.0f, 1.0f) },
-            {EEnemyInput.GhoulsWithWeapons, new EnemyVariable(0.0f, 1.0f) },
-            {EEnemyInput.AttackingGhouls, new EnemyVariable(0.0f, 1.0f) },
-            {EEnemyInput.AttackingGhoulsWithWeapons, new EnemyVariable(0.0f, 1.0f) },
-            {EEnemyInput.DefendingGhouls, new EnemyVariable(0.0f, 1.0f) },
-            {EEnemyInput.GhoulsInWorkshops, new EnemyVariable(0.0f, 1.0f) },
-            {EEnemyInput.DefendingGhoulsWithWeapons, new EnemyVariable(0.0f, 1.0f) },
-            {EEnemyInput.IdlingGhoulsWithWeapon, new EnemyVariable(0.0f, 1.0f) },
-            {EEnemyInput.IdlingGhoulsNotHungry, new EnemyVariable(0.0f, 1.0f) },
-            {EEnemyInput.UnassignedWeaponsInRangeAndNotInDanger, new EnemyVariable(0.0f, 1.0f) },
-            {EEnemyInput.UnusedWorkshopsInRangeAndNotInDanger, new EnemyVariable(0.0f, 1.0f) },
-            {EEnemyInput.UsedWorkshopsInRangeAndNotInDanger, new EnemyVariable(0.0f, 1.0f) },
-            {EEnemyInput.UnassignedFoodsInRangeAndNotInDanger, new EnemyVariable(0.0f, 1.0f) },
-            {EEnemyInput.UnfinishedTribesInRangeAndNotInDanger, new EnemyVariable(0.0f, 1.0f) },
-            {EEnemyInput.UnfinishedWorkshopsInRangeAndNotInDanger, new EnemyVariable(0.0f, 1.0f) },
-            {EEnemyInput.TribesDefensive, new EnemyVariable(0.0f, 1.0f) },
-            {EEnemyInput.TribesAggresive, new EnemyVariable(0.0f, 1.0f) },
-            {EEnemyInput.Churches, new EnemyVariable(0.0f, 1.0f) },
-            {EEnemyInput.UnbalancedTribes, new EnemyVariable(0.0f, 1.0f) },
-            {EEnemyInput.BuildingTribeGhouls, new EnemyVariable(0.0f, 1.0f) },
-            {EEnemyInput.BuildingWorkshopGhouls, new EnemyVariable(0.0f, 1.0f) }
+            {EEnemyInput.TotalGhouls, new EnemyVariable(0.0f, 0.0f) },
+            {EEnemyInput.IdlingGhouls, new EnemyVariable(0.0f, -0.02f) },
+            {EEnemyInput.GhoulsInDanger, new EnemyVariable(0.0f, -0.05f) },
+            {EEnemyInput.HungryIdlingGhouls, new EnemyVariable(0.0f, 0.0f) },
+            {EEnemyInput.GhoulsWithWeapons, new EnemyVariable(0.0f, 0.005f) },
+            {EEnemyInput.AttackingGhouls, new EnemyVariable(0.0f, 0.025f) },
+            {EEnemyInput.AttackingGhoulsWithWeapons, new EnemyVariable(0.0f, 0.05f) },
+            {EEnemyInput.DefendingGhouls, new EnemyVariable(0.0f, 0.03f) },
+            {EEnemyInput.GhoulsInWorkshops, new EnemyVariable(0.0f, 0.01f) },
+            {EEnemyInput.DefendingGhoulsWithWeapons, new EnemyVariable(0.0f, 0.045f) },
+            {EEnemyInput.IdlingGhoulsWithWeapon, new EnemyVariable(0.0f, 0.0f) },
+            {EEnemyInput.IdlingGhoulsNotHungry, new EnemyVariable(0.0f, 0.0f) },
+            {EEnemyInput.UnassignedWeaponsInRangeAndNotInDanger, new EnemyVariable(0.0f, 0.05f) },
+            {EEnemyInput.UnusedWorkshopsInRangeAndNotInDanger, new EnemyVariable(0.0f, 0.03f) },
+            {EEnemyInput.UsedWorkshopsInRangeAndNotInDanger, new EnemyVariable(0.0f, 0.04f) },
+            {EEnemyInput.UnassignedFoodsInRangeAndNotInDanger, new EnemyVariable(0.0f, -0.05f) },
+            {EEnemyInput.UnfinishedTribesInRangeAndNotInDanger, new EnemyVariable(0.0f, 0.01f) },
+            {EEnemyInput.UnfinishedWorkshopsInRangeAndNotInDanger, new EnemyVariable(0.0f, 0.01f) },
+            {EEnemyInput.TribesDefensive, new EnemyVariable(0.0f, 0.1f) },
+            {EEnemyInput.TribesAggresive, new EnemyVariable(0.0f, -0.1f) },
+            {EEnemyInput.Churches, new EnemyVariable(0.0f, -0.05f) },
+            {EEnemyInput.UnbalancedTribes, new EnemyVariable(0.0f, -0.01f) },
+            {EEnemyInput.BuildingTribeGhouls, new EnemyVariable(0.0f, 0.01f) },
+            {EEnemyInput.BuildingWorkshopGhouls, new EnemyVariable(0.0f, 0.01f) }
         };
 
         private Dictionary<EEnemyOperation, EnemyOperation> enemyOperations = new Dictionary<EEnemyOperation, EnemyOperation>();
