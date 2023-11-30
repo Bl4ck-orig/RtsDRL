@@ -18,12 +18,18 @@ namespace ReinforcementLearning
         #region Simplified -----------------------------------------------------------------
         public override void ApplySimplifiedOperation(EnvironmentRts _stats)
         {
-            int weaponsToAssign = Math.Min((int)_stats.IdlingGhouls, (int)_stats.UnassignedWeaponsInRangeAndNotInDanger);
-            _stats.GhoulsWithWeapons += GhoulAmountHandler.GetAmountOfGhoulsToPickupWeapon(weaponsToAssign);
+            int weaponsToAssign = Math.Min((int)_stats.Variables[EEnemyInput.IdlingGhouls].Value, 
+                (int)_stats.Variables[EEnemyInput.UnassignedWeaponsInRangeAndNotInDanger].Value);
+
+            int ghoulsAmountToPickUpWeapon = GhoulAmountHandler.GetAmountOfGhoulsToPickupWeapon(weaponsToAssign);
+            _stats.Variables[EEnemyInput.GhoulsWithWeapons].Value += ghoulsAmountToPickUpWeapon;
+            _stats.Variables[EEnemyInput.UnassignedWeaponsInRangeAndNotInDanger].Value -= ghoulsAmountToPickUpWeapon;
         }
 
         public override bool IsSimplifiedOperationPossible(EnvironmentRts _stats) =>
-            IsOperationPossible((int)_stats.IdlingGhouls, (int)_stats.IdlingGhoulsWithWeapon, (int)_stats.UnassignedWeaponsInRangeAndNotInDanger);
+            IsOperationPossible((int)_stats.Variables[EEnemyInput.IdlingGhouls].Value, 
+                (int)_stats.Variables[EEnemyInput.IdlingGhoulsWithWeapon].Value, 
+                (int)_stats.Variables[EEnemyInput.UnassignedWeaponsInRangeAndNotInDanger].Value);
         #endregion -----------------------------------------------------------------
 
         private bool IsOperationPossible(int _idlingGhouls, int _idlingGhoulsWithWeapon, int _unassignedWeaponsInRangeAndNotInDanger)

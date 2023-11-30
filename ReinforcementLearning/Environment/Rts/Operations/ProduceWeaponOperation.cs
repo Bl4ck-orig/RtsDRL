@@ -16,12 +16,13 @@
         #region Simplified -----------------------------------------------------------------
         public override void ApplySimplifiedOperation(EnvironmentRts _stats)
         {
-            _stats.IdlingGhouls--;
-            _stats.GhoulsInWorkshops++;
+            _stats.Variables[EEnemyInput.IdlingGhouls].Value--;
+            _stats.Variables[EEnemyInput.GhoulsInWorkshops].Value++;
         }
 
         public override bool IsSimplifiedOperationPossible(EnvironmentRts _stats) =>
-            IsOperationPossible(_stats, GetUnusedWorkshopsInRangeAndNotInDangerOfStats(_stats), (int)_stats.IdlingGhoulsNotHungry);
+            IsOperationPossible(_stats, GetUnusedWorkshopsInRangeAndNotInDangerOfStats(_stats), 
+                (int)_stats.Variables[EEnemyInput.IdlingGhoulsNotHungry].Value);
 
         protected abstract int GetUnusedWorkshopsInRangeAndNotInDangerOfStats(EnvironmentRts _stats);
         #endregion -----------------------------------------------------------------

@@ -8,20 +8,20 @@ namespace ReinforcementLearning
         private int minAmountOfGhoulsForDefensiveTribeTakeOver;
         private int minAmountOfGhoulsForAttack;
 
-        private float amountOfGhoulsForBuildingPercent = 0.5f;
-        private float amountOfGhoulsForAttackPercent = 0.5f;
-        private float amountOfGhoulsForPickupWeaponsPercent = 0.5f;
-        private float amountOfGhoulsForTribeTakeoverPercent = 0.5f;
+        private double amountOfGhoulsForBuildingPercent = 0.5f;
+        private double amountOfGhoulsForAttackPercent = 0.5f;
+        private double amountOfGhoulsForPickupWeaponsPercent = 0.5f;
+        private double amountOfGhoulsForTribeTakeoverPercent = 0.5f;
 
-        public EnemyOperationGhoulAmountHandler(RtsConfig _config)
+        public EnemyOperationGhoulAmountHandler()
         {
-            amountOfGhoulsForBuildingPercent = _config.AmountOfGhoulsForBuildingPercent;
-            amountOfGhoulsForAttackPercent = _config.AmountOfGhoulsForAttackPercent;
-            amountOfGhoulsForPickupWeaponsPercent = _config.AmountOfGhoulsForPickupWeaponsPercent;
-            amountOfGhoulsForTribeTakeoverPercent = _config.AmountOfGhoulsForTribeTakeoverPercent;
-            minAmountOfGhoulsForTribeTakeOver = _config.MinAmountOfGhoulsForTribeTakeOver;
-            minAmountOfGhoulsForDefensiveTribeTakeOver = _config.MinAmountOfGhoulsForDefensiveTribeTakeOver;
-            minAmountOfGhoulsForAttack = _config.MinAmountOfGhoulsForAttack;
+            amountOfGhoulsForBuildingPercent = EnvironmentRts.AMOUNT_OF_GHOULS_FOR_BUILDING_PERCENT;
+            amountOfGhoulsForAttackPercent = EnvironmentRts.AMOUNT_OF_GHOULS_FOR_ATTACK_PERCENT;
+            amountOfGhoulsForPickupWeaponsPercent = EnvironmentRts.AMOUNT_OF_GHOULS_FOR_PICKUP_WEAPONS_PERCENT;
+            amountOfGhoulsForTribeTakeoverPercent = EnvironmentRts.AMOUNT_OF_GHOULS_FOR_TRIBE_TAKEOVER_PERCENT;
+            minAmountOfGhoulsForTribeTakeOver = EnvironmentRts.MIN_AMOUNT_OF_GHOULS_FOR_TRIBE_TAKE_OVER;
+            minAmountOfGhoulsForDefensiveTribeTakeOver = EnvironmentRts.MIN_AMOUNT_OF_GHOULS_FOR_DEFENSIVE_TRIBE_TAKE_OVER;
+            minAmountOfGhoulsForAttack = EnvironmentRts.MIN_AMOUNT_OF_GHOULS_FOR_ATTACK;
         }
 
         public bool HasEnoughIdlingGhoulsForBuilding(int _totalGhouls, int _idlingGhouls) =>

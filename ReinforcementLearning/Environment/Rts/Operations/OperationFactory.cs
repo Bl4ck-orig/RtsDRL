@@ -30,8 +30,6 @@ namespace ReinforcementLearning
                     return new DefendOperation();
                 case EEnemyOperation.PickupWeapons:
                     return new PickupWeaponsOperation();
-                case EEnemyOperation.SendGhoulsToTribeAggressive:
-                    return new SendGhoulsToTribeAgressiveOperation();
                 case EEnemyOperation.SendGhoulsToTribeDefensive:
                     return new SendGhoulsToTribeDefensiveOperation();
                 case EEnemyOperation.LeaveBuilding:
@@ -68,8 +66,6 @@ namespace ReinforcementLearning
                     return new DefendOperation(_dataChangedHandler, _ghoulAmountHandler);
                 case EEnemyOperation.PickupWeapons:
                     return new PickupWeaponsOperation(_dataChangedHandler, _ghoulAmountHandler);
-                case EEnemyOperation.SendGhoulsToTribeAggressive:
-                    return new SendGhoulsToTribeAgressiveOperation(_dataChangedHandler, _ghoulAmountHandler);
                 case EEnemyOperation.SendGhoulsToTribeDefensive:
                     return new SendGhoulsToTribeDefensiveOperation(_dataChangedHandler, _ghoulAmountHandler);
                 case EEnemyOperation.LeaveBuilding:

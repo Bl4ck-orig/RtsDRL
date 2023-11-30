@@ -46,6 +46,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Environment\Rts\EEnemyInput.cs" />
+    <Compile Include="Environment\Rts\EnemyVariable.cs" />
     <Compile Include="Environment\Rts\EnvironmentRts.cs" />
     <Compile Include="Environment\Rts\EEnemyOperation.cs" />
     <Compile Include="Environment\Rts\EnemyOperationGhoulAmountHandler.cs" />
@@ -70,9 +72,7 @@
     <Compile Include="Environment\Rts\Operations\ProduceStaffOperation.cs" />
     <Compile Include="Environment\Rts\Operations\ProduceSwordOperation.cs" />
     <Compile Include="Environment\Rts\Operations\ProduceWeaponOperation.cs" />
-    <Compile Include="Environment\Rts\Operations\SendGhoulsToTribeAgressiveOperation.cs" />
     <Compile Include="Environment\Rts\Operations\SendGhoulsToTribeDefensiveOperation.cs" />
-    <Compile Include="Environment\Rts\RtsConfig.cs" />
     <Compile Include="Environment\StateAction.cs" />
     <Compile Include="Environment\StepAction.cs" />
     <Compile Include="Environment\EnvironemntFrozenLake.cs" />

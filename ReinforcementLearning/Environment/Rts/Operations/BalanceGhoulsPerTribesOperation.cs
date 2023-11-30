@@ -18,11 +18,12 @@ namespace ReinforcementLearning
         #region Simplified -----------------------------------------------------------------
         public override void ApplySimplifiedOperation(EnvironmentRts _stats)
         {
-            _stats.UnbalancedTribes = 0;
+            _stats.Variables[EEnemyInput.UnbalancedTribes].Value = 0;
         }
 
         public override bool IsSimplifiedOperationPossible(EnvironmentRts _stats) =>
-            IsOperationPossible((int)_stats.IdlingGhouls, (int)_stats.UnbalancedTribes);
+            IsOperationPossible((int)_stats.Variables[EEnemyInput.IdlingGhouls].Value, 
+                (int)_stats.Variables[EEnemyInput.UnbalancedTribes].Value);
         #endregion -----------------------------------------------------------------
 
         private bool IsOperationPossible(int _idlingGhouls, int _unbalancedTribes) => 

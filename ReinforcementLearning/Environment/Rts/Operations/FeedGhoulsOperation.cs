@@ -18,11 +18,14 @@ namespace ReinforcementLearning
         #region Simplified -----------------------------------------------------------------
         public override void ApplySimplifiedOperation(EnvironmentRts _stats)
         {
-            _stats.HungryIdlingGhouls = Math.Max(0, _stats.HungryIdlingGhouls - _stats.UnassignedFoodsInRangeAndNotInDanger);
+            _stats.Variables[EEnemyInput.HungryIdlingGhouls].Value =
+                Math.Max(0, _stats.Variables[EEnemyInput.HungryIdlingGhouls].Value - 
+                _stats.Variables[EEnemyInput.UnassignedFoodsInRangeAndNotInDanger].Value);
         }
 
         public override bool IsSimplifiedOperationPossible(EnvironmentRts _stats) =>
-            IsOperationPossible((int)_stats.HungryIdlingGhouls, (int)_stats.UnassignedFoodsInRangeAndNotInDanger);
+            IsOperationPossible((int)_stats.Variables[EEnemyInput.HungryIdlingGhouls].Value, 
+                (int)_stats.Variables[EEnemyInput.UnassignedFoodsInRangeAndNotInDanger].Value);
         #endregion -----------------------------------------------------------------
 
         private bool IsOperationPossible(int _hungryGhouls, int _unassignedFoodsInRangeAndNotInDanger)

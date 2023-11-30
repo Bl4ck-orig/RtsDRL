@@ -18,19 +18,18 @@ namespace ReinforcementLearning
         #region Simplified -----------------------------------------------------------------
         public override void ApplySimplifiedOperation(EnvironmentRts _stats)
         {
-            _stats.TribesDefensive++;
-            _stats.IdlingGhouls -= GhoulAmountHandler.GetAmountOfGhoulsForTribeTakeOver((int)_stats.IdlingGhouls);
+            _stats.Variables[EEnemyInput.TribesDefensive].Value++;
+            _stats.Variables[EEnemyInput.IdlingGhouls].Value -= 
+                GhoulAmountHandler.GetAmountOfGhoulsForTribeTakeOver((int)_stats.Variables[EEnemyInput.IdlingGhouls].Value);
         }
 
         public override bool IsSimplifiedOperationPossible(EnvironmentRts _stats) =>
-            IsOperationPossible((int)_stats.UnusedTribesDefensive, (int)_stats.TotalGhouls, (int)_stats.IdlingGhouls);
+            IsOperationPossible((int)_stats.Variables[EEnemyInput.TotalGhouls].Value, 
+                (int)_stats.Variables[EEnemyInput.IdlingGhouls].Value);
         #endregion -----------------------------------------------------------------
 
-        private bool IsOperationPossible(int _unusedTribesDefensive, int _totalGhouls, int _idlingGhouls)
+        private bool IsOperationPossible(int _totalGhouls, int _idlingGhouls)
         {
-            if (_unusedTribesDefensive == 0)
-                return false;
-
             if (!GhoulAmountHandler.HasEnoughIdlingGhoulsForDefensiveTribeTakeOver(_totalGhouls, _idlingGhouls))
                 return false;
 

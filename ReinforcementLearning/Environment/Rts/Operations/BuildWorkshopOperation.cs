@@ -17,8 +17,13 @@ namespace ReinforcementLearning
         #region Simplified -----------------------------------------------------------------
         public override void ApplySimplifiedOperation(EnvironmentRts _stats)
         {
-            _stats.IdlingGhouls -= GhoulAmountHandler.GetAmountOfGhoulsForBuilding((int)_stats.IdlingGhouls);
-            IncreaseUnusedWorkshops(_stats);
+            double amountOfGhoulsForBuilding =
+                GhoulAmountHandler.GetAmountOfGhoulsForBuilding((int)_stats.Variables[EEnemyInput.IdlingGhouls].Value);
+
+            _stats.Variables[EEnemyInput.BuildingWorkshopGhouls].Value += amountOfGhoulsForBuilding;
+            _stats.Variables[EEnemyInput.IdlingGhouls].Value -= amountOfGhoulsForBuilding;
+
+            //IncreaseUnusedWorkshops(_stats);
         }
 
         protected abstract void IncreaseUnusedWorkshops(EnvironmentRts _stats);
@@ -26,8 +31,8 @@ namespace ReinforcementLearning
 
         public override bool IsSimplifiedOperationPossible(EnvironmentRts _stats) =>
             IsOperationPossible((int)GetUnfinishedWorkshopsAmountOfStats(_stats),
-                (int)_stats.TotalGhouls,
-                (int)_stats.IdlingGhouls);
+                (int)_stats.Variables[EEnemyInput.TotalGhouls].Value,
+                (int)_stats.Variables[EEnemyInput.IdlingGhouls].Value);
 
         protected abstract double GetUnfinishedWorkshopsAmountOfStats(EnvironmentRts _stats);
         #endregion -----------------------------------------------------------------

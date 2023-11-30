@@ -14,12 +14,12 @@ namespace ReinforcementLearning
 
         protected override void IncreaseUnusedWorkshops(EnvironmentRts _stats)
         {
-            _stats.UnusedSwordWorkshopsInRangeAndNotInDanger++;
+            _stats.Variables[EEnemyInput.UnusedWorkshopsInRangeAndNotInDanger].Value++;
         }
 
         protected override double GetUnfinishedWorkshopsAmountOfStats(EnvironmentRts _stats)
         {
-            return _stats.UnfinishedSwordWorkshopsInRangeAndNotInDanger;
+            return _stats.Variables[EEnemyInput.UnusedWorkshopsInRangeAndNotInDanger].Value;
         }
         
     }

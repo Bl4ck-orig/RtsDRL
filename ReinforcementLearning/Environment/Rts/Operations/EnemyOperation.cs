@@ -38,7 +38,7 @@ namespace ReinforcementLearning
         #region Ghouls For Attack -----------------------------------------------------------------
         protected (int WithWeapon, int NoWeapon) GetGhoulsForAttack(int _ghoulsForAttackAmount, EnvironmentRts _data, Vector3 _target)
         {
-            int ghoulsWithWeapon = Math.Min(_ghoulsForAttackAmount, (int)_data.IdlingGhoulsWithWeapon);
+            int ghoulsWithWeapon = Math.Min(_ghoulsForAttackAmount, (int)_data.Variables[EEnemyInput.IdlingGhoulsWithWeapon].Value);
             int ghoulsWithoutWeapon = Math.Max(_ghoulsForAttackAmount - ghoulsWithWeapon, 0);
             int withWeapon = Math.Max(ghoulsWithWeapon, 0);
             int noWeapon = Math.Max(ghoulsWithoutWeapon, 0);

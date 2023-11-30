@@ -16,12 +16,20 @@
         #region Simplified -----------------------------------------------------------------
         public override void ApplySimplifiedOperation(EnvironmentRts _stats)
         {
-            _stats.IdlingGhouls -= GhoulAmountHandler.GetAmountOfGhoulsForBuilding((int)_stats.IdlingGhouls);
-            _stats.TribesDefensive++;
+
+            double amountOfGhoulsForBuilding =
+                GhoulAmountHandler.GetAmountOfGhoulsForBuilding((int)_stats.Variables[EEnemyInput.IdlingGhouls].Value);
+
+            _stats.Variables[EEnemyInput.BuildingTribeGhouls].Value += amountOfGhoulsForBuilding;
+            _stats.Variables[EEnemyInput.IdlingGhouls].Value -= amountOfGhoulsForBuilding;
+
+            //_stats.Variables[EEnemyInput.TribesDefensive].Value++;
         }
 
         public override bool IsSimplifiedOperationPossible(EnvironmentRts _stats) =>
-            IsOperationPossible((int)_stats.UnfinishedTribesInRangeAndNotInDanger, (int)_stats.TotalGhouls, (int)_stats.IdlingGhouls);
+            IsOperationPossible((int)_stats.Variables[EEnemyInput.UnfinishedTribesInRangeAndNotInDanger].Value, 
+                (int)_stats.Variables[EEnemyInput.TotalGhouls].Value, 
+                (int)_stats.Variables[EEnemyInput.IdlingGhouls].Value);
         #endregion -----------------------------------------------------------------
 
         private bool IsOperationPossible(int _unfinishedTribesInRangeAndNotInDanger, int _totalGhouls, int _idlingGhouls)

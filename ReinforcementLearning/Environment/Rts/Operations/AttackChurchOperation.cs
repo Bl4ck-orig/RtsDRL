@@ -17,16 +17,20 @@
         public override void ApplySimplifiedOperation(EnvironmentRts _stats)
         {
             GhoulsAttackApplicationValues ghoulsAttackApplicationValues = new GhoulsAttackApplicationValues(
-                GhoulAmountHandler.GetAmountOfGhoulsForAttack((int)_stats.IdlingGhouls),
-                (int)_stats.GhoulsWithWeapons);
+                GhoulAmountHandler.GetAmountOfGhoulsForAttack((int)_stats.Variables[EEnemyInput.IdlingGhouls].Value),
+                (int)_stats.Variables[EEnemyInput.GhoulsWithWeapons].Value);
 
-            _stats.AttackingGhouls += ghoulsAttackApplicationValues.GhoulsWithoutWeaponForAttack;
-            _stats.AttackingGhoulsWithWeapons += ghoulsAttackApplicationValues.GhoulsWithWeaponForAttack;
-            _stats.Churches--;
+            _stats.Variables[EEnemyInput.IdlingGhouls].Value -= ghoulsAttackApplicationValues.GhoulsWithoutWeaponForAttack;
+            _stats.Variables[EEnemyInput.IdlingGhoulsWithWeapon].Value -= ghoulsAttackApplicationValues.GhoulsWithWeaponForAttack;
+            _stats.Variables[EEnemyInput.AttackingGhouls].Value += ghoulsAttackApplicationValues.GhoulsWithoutWeaponForAttack;
+            _stats.Variables[EEnemyInput.AttackingGhoulsWithWeapons].Value += ghoulsAttackApplicationValues.GhoulsWithWeaponForAttack;
+            _stats.Variables[EEnemyInput.Churches].Value--;
         }
 
         public override bool IsSimplifiedOperationPossible(EnvironmentRts _stats) =>
-            IsOperationPossible((int)_stats.Churches, (int)_stats.TotalGhouls, (int)_stats.IdlingGhouls);
+            IsOperationPossible((int)_stats.Variables[EEnemyInput.Churches].Value, 
+                (int)_stats.Variables[EEnemyInput.TotalGhouls].Value, 
+                (int)_stats.Variables[EEnemyInput.IdlingGhouls].Value);
         #endregion -----------------------------------------------------------------
 
         private bool IsOperationPossible(int _churches, int _totalGhouls, int _idlingGhouls)
