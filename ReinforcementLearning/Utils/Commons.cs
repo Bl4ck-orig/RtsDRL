@@ -351,6 +351,29 @@ namespace ReinforcementLearning
             return result;
         }
 
+        public static double[,] AddVectorToMatrixByRows(double[,] matrix, double[] vector)
+        {
+            int rows = matrix.GetLength(0);
+            int cols = matrix.GetLength(1);
+
+            if (vector.Length != rows)
+            {
+                throw new ArgumentException("Length of vector must match the number of rows in the matrix.");
+            }
+
+            double[,] result = new double[rows, cols];
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < cols; j++)
+                {
+                    result[i, j] = matrix[i, j] + vector[i];
+                }
+            }
+
+            return result;
+        }
+
+
         public static double[,] AddMatrixBy(double[,] matrix, double value)
         {
             int rows = matrix.GetLength(0);

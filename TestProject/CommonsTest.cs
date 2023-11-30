@@ -604,6 +604,27 @@ namespace TestProject.Training
         }
 
         [TestMethod]
+        public void Commons_AddVectorToMatrixByRows_ValidInput_ReturnsCorrectlyAddedMatrix()
+        {
+            // Arrange
+            double[,] matrix = { { 1.0, 2.0 }, { 3.0, 4.0 } };
+            double[] vector = { 1.5, 2.0 };
+            double[,] expected = { { 2.5, 3.5 }, { 5.0, 6.0 } };
+
+            // Act
+            double[,] result = Commons.AddVectorToMatrixByRows(matrix, vector);
+
+            // Assert
+            for (int i = 0; i < matrix.GetLength(0); i++)
+            {
+                for (int j = 0; j < matrix.GetLength(1); j++)
+                {
+                    Assert.AreEqual(expected[i, j], result[i, j], 1e-6, $"Mismatch at position [{i}, {j}]");
+                }
+            }
+        }
+
+        [TestMethod]
         public void Commons_ToMatrix_ValidList_ReturnsCorrectMatrix()
         {
             List<double[]> list = new List<double[]>

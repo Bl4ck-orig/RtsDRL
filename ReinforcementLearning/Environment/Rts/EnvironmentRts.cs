@@ -20,21 +20,21 @@ namespace ReinforcementLearning
         private const double DEFEAT_REWARD = -50.0f;
         private const double VICTORY_REWARD = 50.0f;
 
-        private const double GHOULS_IN_DANGER_INCREASE_CHANCE = 0.01f;
-        private const double GHOULS_IN_DANGER_KILL_CHANCE = 0.05f;
-        private const double GHOULS_START_HUNGRY_CHANCE_PER_GHOUL = 0.03f;
-        private const double REDUCE_GHOULS_IN_DANGER_CHANCE_PER_DEFENDING_GHOUL = 0.1f;
-        private const double REDUCE_GHOULS_IN_DANGER_CHANCE_PER_DEFENDING_GHOUL_WITH_WEAPON = 0.15f;
-        private const double INCREASE_WEAPONS_CHANCE_PER_WORKING_GHOUL = 0.03f;
-        private const double INCREASE_TRIBES_CHANCE_PER_BUILDING_GHOUL = 0.05f;
-        private const double INCREASE_WORKSHOP_CHANCE_PER_BUILDING_GHOUL = 0.05f;
-        private const double REPRODUCTION_CHANCE_PER_TRIBE = 0.1f;
+        private const double GHOULS_IN_DANGER_INCREASE_CHANCE = 0.1f;
+        private const double GHOULS_IN_DANGER_KILL_CHANCE = 0.2f;
+        private const double GHOULS_START_HUNGRY_CHANCE_PER_GHOUL = 0.1f;
+        private const double REDUCE_GHOULS_IN_DANGER_CHANCE_PER_DEFENDING_GHOUL = 0.25f;
+        private const double REDUCE_GHOULS_IN_DANGER_CHANCE_PER_DEFENDING_GHOUL_WITH_WEAPON = 0.37f;
+        private const double INCREASE_WEAPONS_CHANCE_PER_WORKING_GHOUL = 0.4f;
+        private const double INCREASE_TRIBES_CHANCE_PER_BUILDING_GHOUL = 0.15f;
+        private const double INCREASE_WORKSHOP_CHANCE_PER_BUILDING_GHOUL = 0.15f;
+        private const double REPRODUCTION_CHANCE_PER_TRIBE = 0.05f;
         private const double REPRODUCTION_CHANCE_REDUCTION_PER_UNBALANCED_TRIBE = 0.02f;
         private const double INCREASE_FOODS_CHANCE_PER_GHOUL = 0.02f;
         private const double INCREASE_FOODS_CHANCE_PER_TRIBE = 0.05f;
-        private const double DECREASE_ATTACKING_GHOUL_BY_DEATH_CHANCE = 0.02f;
-        private const double DECREASE_UNUSED_AGRESSIVE_TRIBES_CHANCE_PER_ATTACKING_GHOUL = 0.02f;
-        private const double DECREASE_UNUSED_AGRESSIVE_TRIBES_CHANCE_PER_ATTACKING_WITH_WEAPON_GHOUL = 0.05f;
+        private const double DECREASE_ATTACKING_GHOUL_BY_DEATH_CHANCE = 0.1f;
+        private const double DECREASE_UNUSED_AGRESSIVE_TRIBES_CHANCE_PER_ATTACKING_GHOUL = 0.05f;
+        private const double DECREASE_UNUSED_AGRESSIVE_TRIBES_CHANCE_PER_ATTACKING_WITH_WEAPON_GHOUL = 0.1f;
 
         public override int ObservationSpaceSize => State.Length;
 
@@ -57,45 +57,45 @@ namespace ReinforcementLearning
 
         protected override List<double[]> InitialStates { get; set; } = new List<double[]>();
 
-        protected override int TimeStepLimit { get; }
-
         public Dictionary<EWeapon,int> AliveWeaponInstances { get; internal set; }
 
         public Dictionary<EEnemyInput, EnemyVariable> Variables { get; private set; } = new Dictionary<EEnemyInput, EnemyVariable>()
         {
-            {EEnemyInput.TotalGhouls, new EnemyVariable(0.0f, 0.0f) },
-            {EEnemyInput.IdlingGhouls, new EnemyVariable(0.0f, -0.02f) },
-            {EEnemyInput.GhoulsInDanger, new EnemyVariable(0.0f, -0.05f) },
-            {EEnemyInput.HungryIdlingGhouls, new EnemyVariable(0.0f, 0.0f) },
-            {EEnemyInput.GhoulsWithWeapons, new EnemyVariable(0.0f, 0.005f) },
-            {EEnemyInput.AttackingGhouls, new EnemyVariable(0.0f, 0.025f) },
-            {EEnemyInput.AttackingGhoulsWithWeapons, new EnemyVariable(0.0f, 0.05f) },
-            {EEnemyInput.DefendingGhouls, new EnemyVariable(0.0f, 0.03f) },
-            {EEnemyInput.GhoulsInWorkshops, new EnemyVariable(0.0f, 0.01f) },
-            {EEnemyInput.DefendingGhoulsWithWeapons, new EnemyVariable(0.0f, 0.045f) },
-            {EEnemyInput.IdlingGhoulsWithWeapon, new EnemyVariable(0.0f, 0.0f) },
-            {EEnemyInput.IdlingGhoulsNotHungry, new EnemyVariable(0.0f, 0.0f) },
-            {EEnemyInput.UnassignedWeaponsInRangeAndNotInDanger, new EnemyVariable(0.0f, 0.05f) },
-            {EEnemyInput.UnusedWorkshopsInRangeAndNotInDanger, new EnemyVariable(0.0f, 0.03f) },
-            {EEnemyInput.UsedWorkshopsInRangeAndNotInDanger, new EnemyVariable(0.0f, 0.04f) },
-            {EEnemyInput.UnassignedFoodsInRangeAndNotInDanger, new EnemyVariable(0.0f, -0.05f) },
-            {EEnemyInput.UnfinishedTribesInRangeAndNotInDanger, new EnemyVariable(0.0f, 0.01f) },
-            {EEnemyInput.UnfinishedWorkshopsInRangeAndNotInDanger, new EnemyVariable(0.0f, 0.01f) },
-            {EEnemyInput.TribesDefensive, new EnemyVariable(0.0f, 0.1f) },
-            {EEnemyInput.TribesAggresive, new EnemyVariable(0.0f, -0.1f) },
-            {EEnemyInput.Churches, new EnemyVariable(0.0f, -0.05f) },
-            {EEnemyInput.UnbalancedTribes, new EnemyVariable(0.0f, -0.01f) },
-            {EEnemyInput.BuildingTribeGhouls, new EnemyVariable(0.0f, 0.01f) },
-            {EEnemyInput.BuildingWorkshopGhouls, new EnemyVariable(0.0f, 0.01f) }
+            /* 0  */{EEnemyInput.TotalGhouls, new EnemyVariable(0.0f, 0.0f) },
+            /* 1  */{EEnemyInput.IdlingGhouls, new EnemyVariable(0.0f, -0.02f) },
+            /* 2  */{EEnemyInput.GhoulsInDanger, new EnemyVariable(0.0f, -0.05f) },
+            /* 3  */{EEnemyInput.HungryIdlingGhouls, new EnemyVariable(0.0f, 0.0f) },
+            /* 4  */{EEnemyInput.GhoulsWithWeapons, new EnemyVariable(0.0f, 0.005f) },
+            /* 5  */{EEnemyInput.AttackingGhouls, new EnemyVariable(0.0f, 0.025f) },
+            /* 6  */{EEnemyInput.AttackingGhoulsWithWeapons, new EnemyVariable(0.0f, 0.05f) },
+            /* 7  */{EEnemyInput.DefendingGhouls, new EnemyVariable(0.0f, 0.03f) },
+            /* 8  */{EEnemyInput.GhoulsInWorkshops, new EnemyVariable(0.0f, 0.01f) },
+            /* 9  */{EEnemyInput.DefendingGhoulsWithWeapons, new EnemyVariable(0.0f, 0.045f) },
+            /* 10 */{EEnemyInput.IdlingGhoulsWithWeapon, new EnemyVariable(0.0f, 0.0f) },
+            /* 11 */{EEnemyInput.IdlingGhoulsNotHungry, new EnemyVariable(0.0f, 0.0f) },
+            /* 12 */{EEnemyInput.UnassignedWeaponsInRangeAndNotInDanger, new EnemyVariable(0.0f, 0.05f) },
+            /* 13 */{EEnemyInput.UnusedWorkshopsInRangeAndNotInDanger, new EnemyVariable(0.0f, 0.03f) },
+            /* 14 */{EEnemyInput.UsedWorkshopsInRangeAndNotInDanger, new EnemyVariable(0.0f, 0.04f) },
+            /* 15 */{EEnemyInput.UnassignedFoodsInRangeAndNotInDanger, new EnemyVariable(0.0f, -0.05f) },
+            /* 16 */{EEnemyInput.UnfinishedTribesInRangeAndNotInDanger, new EnemyVariable(0.0f, 0.01f) },
+            /* 17 */{EEnemyInput.UnfinishedWorkshopsInRangeAndNotInDanger, new EnemyVariable(0.0f, 0.01f) },
+            /* 18 */{EEnemyInput.TribesDefensive, new EnemyVariable(0.0f, 0.1f) },
+            /* 19 */{EEnemyInput.TribesAggresive, new EnemyVariable(0.0f, -0.1f) },
+            /* 20 */{EEnemyInput.Churches, new EnemyVariable(0.0f, -0.05f) },
+            /* 21 */{EEnemyInput.UnbalancedTribes, new EnemyVariable(0.0f, -0.01f) },
+            /* 22 */{EEnemyInput.BuildingTribeGhouls, new EnemyVariable(0.0f, 0.01f) },
+            /* 23 */{EEnemyInput.BuildingWorkshopGhouls, new EnemyVariable(0.0f, 0.01f) }
         };
 
         private Dictionary<EEnemyOperation, EnemyOperation> enemyOperations = new Dictionary<EEnemyOperation, EnemyOperation>();
         private EEnemyOperation[] actions = Enum.GetValues(typeof(EEnemyOperation)) as EEnemyOperation[];
 
-        public EnvironmentRts(List<double[]> _initialStates, int _timeStepLimit = 200)
+        public EnvironmentRts(List<Dictionary<EEnemyInput, double>> _initialStates)
         {
-            TimeStepLimit = _timeStepLimit;
-            InitialStates = _initialStates;
+            for(int i = 0; i < _initialStates.Count; i++)
+            {
+                InitialStates.Add(_initialStates[i].OrderBy(x => x.Key).Select(x => x.Value).ToArray());
+            }
 
             EnemyOperationGhoulAmountHandler enemyOperationGhoulAmountHandler = new EnemyOperationGhoulAmountHandler();
 
@@ -107,8 +107,10 @@ namespace ReinforcementLearning
         {
             double currentReward = GetStateReward(State);
 
-            if (enemyOperations[(EEnemyOperation)_action].IsSimplifiedOperationPossible(this))
-                enemyOperations[(EEnemyOperation)_action].ApplySimplifiedOperation(this);
+            EEnemyOperation action = (EEnemyOperation)_action;
+
+            if (enemyOperations[action].IsSimplifiedOperationPossible(this))
+                enemyOperations[action].ApplySimplifiedOperation(this);
 
             Tick(_prng);
 
@@ -298,6 +300,7 @@ namespace ReinforcementLearning
 
         #region Ghouls In Danger ------------------------------------------------------------------------
         private bool ShouldDecreaseGhoulsInDanger(Random _prng) =>
+            Variables[EEnemyInput.GhoulsInDanger].Value > 0 &&
           _prng.NextDouble() <
            REDUCE_GHOULS_IN_DANGER_CHANCE_PER_DEFENDING_GHOUL * Variables[EEnemyInput.DefendingGhouls].Value +
            REDUCE_GHOULS_IN_DANGER_CHANCE_PER_DEFENDING_GHOUL_WITH_WEAPON * Variables[EEnemyInput.DefendingGhoulsWithWeapons].Value;

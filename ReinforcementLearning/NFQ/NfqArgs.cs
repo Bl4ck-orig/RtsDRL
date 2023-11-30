@@ -2,7 +2,6 @@
 {
     public readonly struct NfqArgs
     {
-        public readonly IFcq ValueModelFn;
         public readonly double LearnRate;
         public readonly int BatchSize;
         public readonly int Epochs;
@@ -12,21 +11,21 @@
         public readonly long MaxEpisodes;
         public readonly IStrategy ExplorationStrategy;
         public readonly IStrategy TrainingStrategy;
+        public readonly int TimeStepLimit;
         public readonly int Seed;
 
-        public NfqArgs(IFcq valueModelFn, 
-            double learnRate, 
-            int batchSize, 
-            int epochs, 
-            Environment<double[]> environment, 
-            double gamma, 
-            double maxMinutes, 
-            long maxEpisodes, 
+        public NfqArgs(Environment<double[]> environment, 
             IStrategy explorationStrategy,
             IStrategy trainingStrategy,
+            double learnRate = 0, 
+            int batchSize = 1024, 
+            int epochs = 40, 
+            double gamma = 1.0f, 
+            double maxMinutes = 600f, 
+            long maxEpisodes = 10000,
+            int _timeStepLimit = 200,
             int seed = -1)
         {
-            ValueModelFn = valueModelFn;
             LearnRate = learnRate;
             BatchSize = batchSize;
             Epochs = epochs;
@@ -37,6 +36,7 @@
             MaxEpisodes = maxEpisodes;
             ExplorationStrategy = explorationStrategy;
             TrainingStrategy = trainingStrategy;
+            TimeStepLimit = _timeStepLimit;
             Seed = seed;
         }
     }

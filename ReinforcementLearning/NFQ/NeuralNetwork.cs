@@ -129,18 +129,27 @@ namespace ReinforcementLearning
         #region Getting Prediction -----------------------------------------------------------------
         public double[,] GetOutputMatrix(double[,] _inputs)
         {
-            inputLayer = _inputs.Clone() as double[,];
-
+            SetInputLayerByMatrix(_inputs);
             ApplyForwardPropagation();
             return outputLayer.Clone() as double[,];
         }
 
         public double[] GetHighestRewardOutputIndex(double[,] _inputs)
         {
-            inputLayer = _inputs.Clone() as double[,];
-
+            SetInputLayerByMatrix(_inputs);
             ApplyForwardPropagation();
             return GetHighestRewardOutputIndex();
+        }
+
+        private void SetInputLayerByMatrix(double[,] _inputs)
+        {
+            if (_inputs.GetLength(0) != inputLayer.GetLength(0))
+                throw new ArgumentException("Wrong dimension of input matrix");
+
+            if (_inputs.GetLength(1) != inputLayer.GetLength(1))
+                throw new ArgumentException("Wrong dimension of input matrix");
+
+            inputLayer = _inputs.Clone() as double[,];
         }
 
         public double[] GetPrediction(double[] _inputs)
@@ -313,7 +322,7 @@ namespace ReinforcementLearning
 
         private void BackPropagateHiddenLayerWeights()
         {
-            changeInHiddenLayerWeights = changeInHiddenLayerError.DotProduct(featureMatrix.Transpose());
+            changeInHiddenLayerWeights = changeInHiddenLayerError.DotProduct(inputLayer.Transpose());
             changeInHiddenLayerWeights = changeInHiddenLayerWeights.Multiply(oneOverBatchSize);
         }
 

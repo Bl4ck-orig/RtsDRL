@@ -18,8 +18,8 @@ namespace ReinforcementLearning
         {
             double[] prediction = _model.GetPrediction(_state);
 
-            int action = 0;
             int argMaxAction = Commons.ArgMax(prediction);
+            int action = argMaxAction;
 
             if (_prng.NextDouble() < epsilon)
                 action = _prng.Next(prediction.Length);

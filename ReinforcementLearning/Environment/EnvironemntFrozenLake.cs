@@ -113,8 +113,6 @@ namespace ReinforcementLearning
             { new StateAction<int>(15, 3), new StepAction<int>(new List<(double, int)>() { (1.0f, 15) }, new Dictionary<int, double>() { { 15, 0.0f } }) },
         };
 
-        protected override int TimeStepLimit => int.MaxValue;
-
         private List<int> observationSpace = Enumerable.Range(0, 16).ToList();
         private List<int> actionSpace = new List<int>()
         {

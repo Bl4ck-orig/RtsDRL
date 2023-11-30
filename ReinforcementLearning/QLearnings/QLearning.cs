@@ -27,7 +27,7 @@ namespace ReinforcementLearning.Training
             {
                 Dialogue.PrintProgress(e, _args.NEpisodes, e == 0);
 
-                int state = _args.Environment.Reset(prng);
+                int state = _args.Environment.Reset(false, prng);
                 bool done = false;
                 while (!done)
                 {

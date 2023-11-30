@@ -9,12 +9,15 @@ namespace ReinforcementLearning
         public abstract int ActionSpaceSize { get; }
         public abstract T State { get; protected set; }
         protected abstract List<T> InitialStates { get; set; }
-        protected abstract int TimeStepLimit { get; }
 
+        private int timeStepLimit;
+        private bool hasTimeStepLimit;
         private int stepsCount = 0;
 
-        public T Reset(Random _prng)
+        public T Reset(bool _hasTimeStepLimit, Random _prng, int _timeStepLimit = 0)
         {
+            timeStepLimit = _timeStepLimit;
+            hasTimeStepLimit = _hasTimeStepLimit;
             stepsCount = 0;
             return State = InitialStates[_prng.Next(InitialStates.Count)];
         }
@@ -24,7 +27,7 @@ namespace ReinforcementLearning
             var actResult = Act(_action, _prng);
             State = actResult.NextState;
             stepsCount++;
-            bool isTruncated = !actResult.IsTerminal && stepsCount >= TimeStepLimit;
+            bool isTruncated = !actResult.IsTerminal && (hasTimeStepLimit && stepsCount >= timeStepLimit);
             return new StepResult<T>(actResult.NextState, actResult.Reward, actResult.IsTerminal, isTruncated);
         }
 
