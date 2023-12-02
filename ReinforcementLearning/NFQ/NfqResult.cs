@@ -22,5 +22,14 @@ namespace ReinforcementLearning
             EpisodeTimeStep = episodeTimeStep;
             EpisodeExploration = episodeExploration;
         }
+
+        public TrainingResult ToNeuralNetworkResults()
+        {
+            return new TrainingResult(Model.GetNeuralNetworkValues(),
+                EndReason, 
+                EpisodeRewards.ToArray(), 
+                EpisodeTimeStep.ToArray(), 
+                EpisodeExploration.ToArray());
+        }
     }
 }

@@ -11,5 +11,7 @@
         void Backwards(double[,] _errorMatrix, double _learningRate);
 
         void AdjustWeightsAndBiases();
+
+        NeuralNetworkValues GetNeuralNetworkValues();
     }
 }

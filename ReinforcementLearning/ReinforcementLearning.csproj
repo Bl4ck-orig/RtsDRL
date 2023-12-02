@@ -78,6 +78,8 @@
     <Compile Include="Environment\EnvironemntFrozenLake.cs" />
     <Compile Include="Environment\Environment.cs" />
     <Compile Include="Environment\StepResult.cs" />
+    <Compile Include="NeuralNetworkValues.cs" />
+    <Compile Include="TrainingResult.cs" />
     <Compile Include="Exploration\Exploration.cs" />
     <Compile Include="NFQ\EGreedyStrategy.cs" />
     <Compile Include="NFQ\Experience.cs" />
@@ -95,7 +97,7 @@
     <Compile Include="QLearnings\QLearningArgs.cs" />
     <Compile Include="QLearnings\QLearningResult.cs" />
     <Compile Include="Utils\Dialogue.cs" />
-    <Compile Include="Utils\Vector3.cs" />
+    <Compile Include="Utils\Serializer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Net.NetworkInformation;
 
 namespace ReinforcementLearning
 {
@@ -26,7 +25,6 @@ namespace ReinforcementLearning
         private double[,] outputLayer;
         private double[,] outputLayerZ;
 
-        private double[,] featureMatrix;
         private double[,] errorMatrix;
         private double oneOverBatchSize;
 
@@ -37,8 +35,6 @@ namespace ReinforcementLearning
         private double[,] changeInHiddenLayerError;
         private double[,] changeInHiddenLayerWeights;
         private double[,] changeInHiddenBias;
-
-        private int yieldAt = 100;
 
         public NeuralNetwork(int _inputSize, int _outputSize, int _batchSize, Random _prng)
         {
@@ -94,6 +90,32 @@ namespace ReinforcementLearning
                     outputBias[x, y] = _prng.NextDouble() - 0.5f;
                 }
             }
+        }
+
+        public NeuralNetwork(TrainingResult _trainingResult)
+        {
+            inputSize = _trainingResult.inputSize;
+            outputSize= _trainingResult.outputSize;
+            batchSize= _trainingResult.batchSize;
+            hiddenWeights= _trainingResult.hiddenWeights;
+            hiddenBias= _trainingResult.hiddenBias;
+            outputWeights= _trainingResult.outputWeights;
+            outputBias= _trainingResult.outputBias;
+            hiddenLayerNodesAmount= _trainingResult.hiddenLayerNodesAmount;
+            learningRate= _trainingResult.learningRate;
+            inputLayer= _trainingResult.inputLayer;
+            hiddenLayer= _trainingResult.hiddenLayer;
+            hiddenLayerZ= _trainingResult.hiddenLayerZ;
+            outputLayer= _trainingResult.outputLayer;
+            outputLayerZ= _trainingResult.outputLayerZ;
+            errorMatrix= _trainingResult.errorMatrix;
+            oneOverBatchSize= _trainingResult.oneOverBatchSize;
+            changeInOutputLayerError= _trainingResult.changeInOutputLayerError;
+            changeInOutputWeights= _trainingResult.changeInOutputWeights;
+            changeInOutputBias= _trainingResult.changeInOutputBias;
+            changeInHiddenLayerError= _trainingResult.changeInHiddenLayerError;
+            changeInHiddenLayerWeights= _trainingResult.changeInHiddenLayerWeights;
+            changeInHiddenBias= _trainingResult.changeInHiddenBias;
         }
 
         #region Forward Propagation -----------------------------------------------------------------
@@ -226,31 +248,6 @@ namespace ReinforcementLearning
             ApplyBackPropagation();
         }
 
-        public void TrainModel(double[,] _featureMatrix, 
-            double[,] _errorMatrix,
-            int _iterations, 
-            float _learningRate)
-        {
-            featureMatrix = _featureMatrix;
-            inputLayer = _featureMatrix.Clone() as double[,];
-            errorMatrix = _errorMatrix;
-            learningRate = _learningRate;
-
-            Console.WriteLine("Starting training of " + _iterations + " iterations");
-
-            for (int i = 0; i < _iterations; i++)
-            {
-                ApplyForwardPropagation();
-                ApplyBackPropagation();
-                AdjustWeightsAndBiases();
-
-                if (i % yieldAt == 0)
-                    Dialogue.PrintProgress(i, _iterations, i == 0);
-            }
-
-            Console.WriteLine("Finished with accuracy of = " + GetAccuracy());
-        }
-
         public void ApplyBackPropagation()
         {
             BackPropagateOutputLayer();
@@ -347,36 +344,30 @@ namespace ReinforcementLearning
             outputBias = outputBias.Subtract(changeInOutputBias.Multiply(learningRate));
         }
 
-        private double GetAccuracy()
+        public NeuralNetworkValues GetNeuralNetworkValues()
         {
-            int correctPredictions = 0;
-
-            for (int y = 0; y < outputLayer.GetLength(1); y++)
-            {
-                int correctIndex = 0;
-                double rewardMatrixMax = double.MinValue;
-                int predictionIndex = 0;
-                double predictionMatrixMax = double.MinValue;
-
-                for (int x = 0; x < outputLayer.GetLength(0); x++)
-                {
-                    if (outputLayer[x, y] > predictionMatrixMax)
-                    {
-                        predictionMatrixMax = outputLayer[x, y];
-                        predictionIndex = x;
-                    }
-
-                    if (errorMatrix[x, y] > rewardMatrixMax)
-                    {
-                        rewardMatrixMax = errorMatrix[x, y];
-                        correctIndex = x;
-                    }
-                }
-
-                if (correctIndex == predictionIndex)
-                    correctPredictions++;
-            }
-            return (double)correctPredictions / batchSize;
+            return new NeuralNetworkValues(inputSize,
+                outputSize,
+                batchSize,
+                hiddenWeights,
+                hiddenBias,
+                outputWeights,
+                outputBias,
+                hiddenLayerNodesAmount,
+                learningRate,
+                inputLayer,
+                hiddenLayer,
+                hiddenLayerZ,
+                outputLayer,
+                outputLayerZ,
+                errorMatrix,
+                oneOverBatchSize,
+                changeInOutputLayerError,
+                changeInOutputWeights,
+                changeInOutputBias,
+                changeInHiddenLayerError,
+                changeInHiddenLayerWeights,
+                changeInHiddenBias);
         }
         #endregion -----------------------------------------------------------------
     }
