@@ -19,7 +19,7 @@ namespace ReinforcementLearning
 
         protected override double GetUnfinishedWorkshopsAmountOfStats(EnvironmentRts _stats)
         {
-            return _stats.Variables[EEnemyInput.UnusedWorkshopsInRangeAndNotInDanger].Value;
+            return _stats.Variables[EEnemyInput.UnfinishedWorkshopsInRangeAndNotInDanger].Value;
         }
 
     }

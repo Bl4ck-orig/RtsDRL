@@ -22,8 +22,6 @@
 
             _stats.Variables[EEnemyInput.BuildingTribeGhouls].Value += amountOfGhoulsForBuilding;
             _stats.Variables[EEnemyInput.IdlingGhouls].Value -= amountOfGhoulsForBuilding;
-
-            //_stats.Variables[EEnemyInput.TribesDefensive].Value++;
         }
 
         public override bool IsSimplifiedOperationPossible(EnvironmentRts _stats) =>

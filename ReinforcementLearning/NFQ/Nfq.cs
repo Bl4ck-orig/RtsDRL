@@ -90,14 +90,14 @@ namespace ReinforcementLearning
                 if (stopwatch.Elapsed >= maxTimeSpan)
                 {
                     isTrainingFinished = true;
-                    trainingFinishedReason = "Max training time reached.";
+                    trainingFinishedReason = "Max training time reached after " + maxTimeSpan.ToString() + ".";
                 }
 
-                if(episode >= maxEpisodes)
-                {
-                    isTrainingFinished = true;
-                    trainingFinishedReason = "Max episodes reached.";
-                }
+                //if(episode >= maxEpisodes)
+                //{
+                //    isTrainingFinished = true;
+                //    trainingFinishedReason = "Max episodes reached.";
+                //}
             }
 
             return new NfqResult(onlineModel, trainingFinishedReason, episodeRewards, episodeTimeStep, episodeExploration);
@@ -118,7 +118,7 @@ namespace ReinforcementLearning
             episodeRewards[episodeRewards.Count - 1] += stepResult.Reward;
             episodeTimeStep[episodeTimeStep.Count - 1] += 1;
             episodeExploration[episodeExploration.Count - 1] += trainingStrategy.ExploratoryActionTaken ? 1 : 0;
-            return (stepResult.NextState, stepResult.Done);
+            return (stepResult.NextState, stepResult.Done || stepResult.IsTruncated);
         }
 
         private void OptimizeModel()

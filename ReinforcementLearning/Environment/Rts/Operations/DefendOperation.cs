@@ -25,7 +25,6 @@ namespace ReinforcementLearning
             _stats.Variables[EEnemyInput.IdlingGhoulsWithWeapon].Value -= ghoulsAttackApplicationValues.GhoulsWithWeaponForAttack;
             _stats.Variables[EEnemyInput.DefendingGhouls].Value += ghoulsAttackApplicationValues.GhoulsWithoutWeaponForAttack;
             _stats.Variables[EEnemyInput.DefendingGhoulsWithWeapons].Value += ghoulsAttackApplicationValues.GhoulsWithWeaponForAttack;
-            _stats.Variables[EEnemyInput.GhoulsInDanger].Value--;
         }
 
         public override bool IsSimplifiedOperationPossible(EnvironmentRts _stats) =>

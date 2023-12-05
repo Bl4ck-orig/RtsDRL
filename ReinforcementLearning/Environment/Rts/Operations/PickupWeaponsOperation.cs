@@ -23,6 +23,7 @@ namespace ReinforcementLearning
 
             int ghoulsAmountToPickUpWeapon = GhoulAmountHandler.GetAmountOfGhoulsToPickupWeapon(weaponsToAssign);
             _stats.Variables[EEnemyInput.GhoulsWithWeapons].Value += ghoulsAmountToPickUpWeapon;
+            _stats.Variables[EEnemyInput.IdlingGhoulsWithWeapon].Value += ghoulsAmountToPickUpWeapon;
             _stats.Variables[EEnemyInput.UnassignedWeaponsInRangeAndNotInDanger].Value -= ghoulsAmountToPickUpWeapon;
         }
 

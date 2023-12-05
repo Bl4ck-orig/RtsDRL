@@ -17,14 +17,14 @@ namespace ReinforcementLearning
         public const int MIN_AMOUNT_OF_GHOULS_FOR_DEFENSIVE_TRIBE_TAKE_OVER = 2;
         public const int MIN_AMOUNT_OF_GHOULS_FOR_ATTACK = 5;
 
-        private const double DEFEAT_REWARD = -50.0f;
-        private const double VICTORY_REWARD = 50.0f;
+        private const double DEFEAT_REWARD = -1.0f;
+        private const double VICTORY_REWARD = 1.0f;
 
         private const double GHOULS_IN_DANGER_INCREASE_CHANCE = 0.1f;
-        private const double GHOULS_IN_DANGER_KILL_CHANCE = 0.2f;
+        private const double GHOULS_IN_DANGER_KILL_CHANCE = 0.15f;
         private const double GHOULS_START_HUNGRY_CHANCE_PER_GHOUL = 0.1f;
-        private const double REDUCE_GHOULS_IN_DANGER_CHANCE_PER_DEFENDING_GHOUL = 0.25f;
-        private const double REDUCE_GHOULS_IN_DANGER_CHANCE_PER_DEFENDING_GHOUL_WITH_WEAPON = 0.37f;
+        private const double REDUCE_GHOULS_IN_DANGER_CHANCE_PER_DEFENDING_GHOUL = 0.15f;
+        private const double REDUCE_GHOULS_IN_DANGER_CHANCE_PER_DEFENDING_GHOUL_WITH_WEAPON = 0.17f;
         private const double INCREASE_WEAPONS_CHANCE_PER_WORKING_GHOUL = 0.4f;
         private const double INCREASE_TRIBES_CHANCE_PER_BUILDING_GHOUL = 0.15f;
         private const double INCREASE_WORKSHOP_CHANCE_PER_BUILDING_GHOUL = 0.15f;
@@ -57,8 +57,6 @@ namespace ReinforcementLearning
 
         protected override List<double[]> InitialStates { get; set; } = new List<double[]>();
 
-        public Dictionary<EWeapon,int> AliveWeaponInstances { get; internal set; }
-
         public Dictionary<EEnemyInput, EnemyVariable> Variables { get; private set; } = new Dictionary<EEnemyInput, EnemyVariable>()
         {
             /* 0  */{EEnemyInput.TotalGhouls, new EnemyVariable(0.0f, 0.0f) },
@@ -73,7 +71,7 @@ namespace ReinforcementLearning
             /* 9  */{EEnemyInput.DefendingGhoulsWithWeapons, new EnemyVariable(0.0f, 0.045f) },
             /* 10 */{EEnemyInput.IdlingGhoulsWithWeapon, new EnemyVariable(0.0f, 0.0f) },
             /* 11 */{EEnemyInput.IdlingGhoulsNotHungry, new EnemyVariable(0.0f, 0.0f) },
-            /* 12 */{EEnemyInput.UnassignedWeaponsInRangeAndNotInDanger, new EnemyVariable(0.0f, 0.05f) },
+            /* 12 */{EEnemyInput.UnassignedWeaponsInRangeAndNotInDanger, new EnemyVariable(0.0f, 0.0f) },
             /* 13 */{EEnemyInput.UnusedWorkshopsInRangeAndNotInDanger, new EnemyVariable(0.0f, 0.03f) },
             /* 14 */{EEnemyInput.UsedWorkshopsInRangeAndNotInDanger, new EnemyVariable(0.0f, 0.04f) },
             /* 15 */{EEnemyInput.UnassignedFoodsInRangeAndNotInDanger, new EnemyVariable(0.0f, -0.05f) },
@@ -88,7 +86,8 @@ namespace ReinforcementLearning
         };
 
         private Dictionary<EEnemyOperation, EnemyOperation> enemyOperations = new Dictionary<EEnemyOperation, EnemyOperation>();
-        private EEnemyOperation[] actions = Enum.GetValues(typeof(EEnemyOperation)) as EEnemyOperation[];
+        private EEnemyOperation[] actions = Enum.GetValues(typeof(EEnemyOperation)) as EEnemyOperation[]; 
+        private int _void = 0;
 
         public EnvironmentRts(List<Dictionary<EEnemyInput, double>> _initialStates)
         {
@@ -102,6 +101,7 @@ namespace ReinforcementLearning
             enemyOperations = actions
                 .ToDictionary(k => k, v => OperationFactory.CreateOperation(v, null, enemyOperationGhoulAmountHandler));
         }
+
 
         protected override (double[] NextState, double Reward, bool IsTerminal) Act(int _action, Random _prng)
         {
@@ -128,6 +128,15 @@ namespace ReinforcementLearning
 
         private void Tick(Random _prng)
         {
+            // Debugging: 
+            //if (StepsCount > 100)
+            //{
+            //    if (_void == 0)
+            //        _void = 1;
+            //}
+            //else
+            //    _void = 0;
+
             if (ShouldIncreaseFoods(_prng))
                 IncreaseFoods();
 
@@ -147,19 +156,21 @@ namespace ReinforcementLearning
                 Reproduction();
 
             if (ShouldIncreaseGhoulsInDanger(_prng))
-                IncreaseGhoulsInDanger();
+                IncreaseGhoulsInDanger(_prng);
 
             if (ShouldIncreaseGhoulsHungry(_prng))
                 IncreaseGhoulsHungry();
 
             if (ShouldDecreaseGhoulsInDanger(_prng))
-                DecreaseGhoulsInDanger();
+                DecreaseGhoulsInDanger(_prng);
 
             if (ShouldIncreaseWeapons(_prng))
                 IncreaseWeapons();
 
             if (ShouldDecreaseGhoulsInDangerByDeath(_prng))
                 DecreaseGhoulsInDangerByDeath();
+
+            TryFreeDefendingGhouls(_prng);
 
             TrySetUnbalancedTribes();
         }
@@ -187,7 +198,18 @@ namespace ReinforcementLearning
         {
             Variables[EEnemyInput.IdlingGhoulsNotHungry].Value--;
             Variables[EEnemyInput.IdlingGhouls].Value--;
+            IncreaseHungryIdlingGhouls();
+        }
+
+        private void IncreaseHungryIdlingGhouls()
+        {
             Variables[EEnemyInput.HungryIdlingGhouls].Value++;
+        }
+
+        private void IncreaseNotHungryGhouls()
+        {
+            Variables[EEnemyInput.IdlingGhouls].Value++;
+            Variables[EEnemyInput.IdlingGhoulsNotHungry].Value++;
         }
 
         #endregion Foods & Hunger ------------------------------------------------------------------------
@@ -199,7 +221,7 @@ namespace ReinforcementLearning
                 return false;
 
             if (_prng.NextDouble() >
-                Variables[EEnemyInput.BuildingWorkshopGhouls].Value *
+                Variables[EEnemyInput.BuildingTribeGhouls].Value *
                 INCREASE_TRIBES_CHANCE_PER_BUILDING_GHOUL)
                 return false;
 
@@ -212,7 +234,7 @@ namespace ReinforcementLearning
             Variables[EEnemyInput.TribesDefensive].Value++;
             Variables[EEnemyInput.UnbalancedTribes].Value = Variables[EEnemyInput.TribesDefensive].Value;
 
-            ReduceBuildingGhouls(EEnemyInput.BuildingWorkshopGhouls, EEnemyInput.TribesDefensive);
+            ReduceBuildingGhouls(EEnemyInput.BuildingTribeGhouls);
         }
 
         private bool ShouldIncreaseWorkshops(Random _prng)
@@ -233,10 +255,10 @@ namespace ReinforcementLearning
             Variables[EEnemyInput.UnfinishedWorkshopsInRangeAndNotInDanger].Value--;
             Variables[EEnemyInput.UnusedWorkshopsInRangeAndNotInDanger].Value++;
 
-            ReduceBuildingGhouls(EEnemyInput.BuildingWorkshopGhouls, EEnemyInput.UnfinishedWorkshopsInRangeAndNotInDanger);
+            ReduceBuildingGhouls(EEnemyInput.BuildingWorkshopGhouls);
         }
 
-        private void ReduceBuildingGhouls(EEnemyInput _buildingGhouls, EEnemyInput _unfinishedBuildingType)
+        private void ReduceBuildingGhouls(EEnemyInput _buildingGhouls)
         {
             double buildingGhoulsToReduce = 0.0f;
 
@@ -246,6 +268,7 @@ namespace ReinforcementLearning
                 buildingGhoulsToReduce = Variables[_buildingGhouls].Value;
 
             Variables[EEnemyInput.IdlingGhouls].Value += buildingGhoulsToReduce;
+            Variables[EEnemyInput.IdlingGhoulsNotHungry].Value += buildingGhoulsToReduce;
             Variables[_buildingGhouls].Value -= buildingGhoulsToReduce;
         }
         #endregion Building Increase ------------------------------------------------------------------------
@@ -305,9 +328,18 @@ namespace ReinforcementLearning
            REDUCE_GHOULS_IN_DANGER_CHANCE_PER_DEFENDING_GHOUL * Variables[EEnemyInput.DefendingGhouls].Value +
            REDUCE_GHOULS_IN_DANGER_CHANCE_PER_DEFENDING_GHOUL_WITH_WEAPON * Variables[EEnemyInput.DefendingGhoulsWithWeapons].Value;
 
-        private void DecreaseGhoulsInDanger()
+        private void DecreaseGhoulsInDanger(Random _prng)
         {
             Variables[EEnemyInput.GhoulsInDanger].Value--;
+            if(_prng.NextDouble() > 0.5f)
+            {
+                Variables[EEnemyInput.IdlingGhouls].Value++;
+                Variables[EEnemyInput.IdlingGhoulsNotHungry].Value++;
+            }
+            else
+            {
+                Variables[EEnemyInput.HungryIdlingGhouls].Value++;
+            }
         }
 
         private bool ShouldDecreaseGhoulsInDangerByDeath(Random _prng)
@@ -327,11 +359,66 @@ namespace ReinforcementLearning
             Variables[EEnemyInput.TotalGhouls].Value--;
         }
 
-        private bool ShouldIncreaseGhoulsInDanger(Random _prng) => _prng.NextDouble() < GHOULS_IN_DANGER_INCREASE_CHANCE;
+        private bool ShouldIncreaseGhoulsInDanger(Random _prng)
+        {
+            if (_prng.NextDouble() > GHOULS_IN_DANGER_INCREASE_CHANCE)
+                return false;
 
-        private void IncreaseGhoulsInDanger()
+            if (Variables[EEnemyInput.IdlingGhouls].Value < 0 &&
+                Variables[EEnemyInput.HungryIdlingGhouls].Value < 0)
+                return false;
+
+            return true;
+        }
+
+        private void IncreaseGhoulsInDanger(Random _prng)
         {
             Variables[EEnemyInput.GhoulsInDanger].Value++;
+
+            if(Variables[EEnemyInput.IdlingGhouls].Value <= 0)
+            {
+                IncreaseHungryIdlingGhouls();
+                return;
+            }
+            
+            if(Variables[EEnemyInput.HungryIdlingGhouls].Value <= 0)
+            {
+                IncreaseNotHungryGhouls();
+                return;
+            }
+
+            if (_prng.NextDouble() > 0.5f)
+                IncreaseNotHungryGhouls();
+            else
+                IncreaseHungryIdlingGhouls();
+        }
+
+        private void TryFreeDefendingGhouls(Random _prng)
+        {
+            if (Variables[EEnemyInput.GhoulsInDanger].Value > 0)
+                return;
+
+            bool done = false;
+
+            for(int i = 0; i < Variables[EEnemyInput.DefendingGhouls].Value; i++)
+            {
+                if (_prng.NextDouble() > 0.5f)
+                    IncreaseNotHungryGhouls();
+                else
+                    IncreaseHungryIdlingGhouls();
+            }
+
+            Variables[EEnemyInput.DefendingGhouls].Value = 0;
+
+            for (int i = 0; i < Variables[EEnemyInput.DefendingGhoulsWithWeapons].Value; i++)
+            {
+                if (_prng.NextDouble() > 0.5f)
+                    IncreaseNotHungryGhouls();
+                else
+                    IncreaseHungryIdlingGhouls();
+            }
+
+            Variables[EEnemyInput.DefendingGhoulsWithWeapons].Value = 0;
         }
         #endregion Ghouls In Danger ------------------------------------------------------------------------
 
@@ -379,7 +466,7 @@ namespace ReinforcementLearning
             if (Variables[EEnemyInput.TotalGhouls].Value >= MAX_GHOULS)
                 return false;
 
-            if (_prng.NextDouble() > Variables[EEnemyInput.TribesDefensive].Value * REPRODUCTION_CHANCE_PER_TRIBE -
+            if (_prng.NextDouble() < Variables[EEnemyInput.TribesDefensive].Value * REPRODUCTION_CHANCE_PER_TRIBE -
                 Variables[EEnemyInput.UnbalancedTribes].Value * REPRODUCTION_CHANCE_REDUCTION_PER_UNBALANCED_TRIBE)
                 return false;
 
@@ -393,6 +480,7 @@ namespace ReinforcementLearning
             Variables[EEnemyInput.IdlingGhouls].Value++;
         }
         #endregion Reproduction ------------------------------------------------------------------------
+
 
         private double GetStateReward(double[] _state)
         {

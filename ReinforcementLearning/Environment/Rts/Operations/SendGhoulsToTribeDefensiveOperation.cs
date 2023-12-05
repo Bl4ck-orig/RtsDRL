@@ -23,9 +23,10 @@ namespace ReinforcementLearning
                 GhoulAmountHandler.GetAmountOfGhoulsForTribeTakeOver((int)_stats.Variables[EEnemyInput.IdlingGhouls].Value);
         }
 
-        public override bool IsSimplifiedOperationPossible(EnvironmentRts _stats) =>
-            IsOperationPossible((int)_stats.Variables[EEnemyInput.TotalGhouls].Value, 
-                (int)_stats.Variables[EEnemyInput.IdlingGhouls].Value);
+        [System.Obsolete("Not usable in this simulation")]
+        public override bool IsSimplifiedOperationPossible(EnvironmentRts _stats) => false;
+            //IsOperationPossible((int)_stats.Variables[EEnemyInput.TotalGhouls].Value, 
+            //    (int)_stats.Variables[EEnemyInput.IdlingGhouls].Value);
         #endregion -----------------------------------------------------------------
 
         private bool IsOperationPossible(int _totalGhouls, int _idlingGhouls)

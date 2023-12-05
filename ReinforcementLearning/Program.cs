@@ -2,12 +2,15 @@
 using ReinforcementLearning.Utils;
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace ReinforcementLearning
 {
     internal class Program
     {
-        private static string fileName = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Model.bin";
+        private static string fileNameNoExt = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Model";
+
+
 
         static void Main(string[] args)
         {
@@ -15,7 +18,7 @@ namespace ReinforcementLearning
 
             RunNfq();
 
-            //TestModel(Serializer.DeserializeObject(fileName));
+            //TestModel(Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\FILE);
         }
 
         private static void RunQLearning()
@@ -29,7 +32,7 @@ namespace ReinforcementLearning
 
         private static void RunNfq()
         {
-            Dictionary<EEnemyInput, double> initialState = new Dictionary<EEnemyInput, double>()
+            Dictionary<EEnemyInput, double> initialStateStandard = new Dictionary<EEnemyInput, double>()
             {
                 { EEnemyInput.TotalGhouls, 10.0f },                                          
                 { EEnemyInput.IdlingGhouls, 10.0f },
@@ -57,31 +60,158 @@ namespace ReinforcementLearning
                 { EEnemyInput.BuildingWorkshopGhouls, 0.0f}
             };
 
+            Dictionary<EEnemyInput, double> initialStateLateGame = new Dictionary<EEnemyInput, double>()
+            {
+                { EEnemyInput.TotalGhouls, 27.0f },
+                { EEnemyInput.IdlingGhouls, 15.0f },
+                { EEnemyInput.GhoulsInDanger, 5.0f },
+                { EEnemyInput.HungryIdlingGhouls, 5.0f },
+                { EEnemyInput.GhoulsWithWeapons, 8.0f },
+                { EEnemyInput.AttackingGhouls, 0.0f },
+                { EEnemyInput.AttackingGhoulsWithWeapons, 0.0f },
+                { EEnemyInput.DefendingGhouls, 0.0f },
+                { EEnemyInput.GhoulsInWorkshops, 2.0f },
+                { EEnemyInput.DefendingGhoulsWithWeapons, 0.0f },
+                { EEnemyInput.IdlingGhoulsWithWeapon, 8.0f },
+                { EEnemyInput.IdlingGhoulsNotHungry, 10.0f  },
+                { EEnemyInput.UnassignedWeaponsInRangeAndNotInDanger, 5.0f },
+                { EEnemyInput.UnusedWorkshopsInRangeAndNotInDanger, 2.0f },
+                { EEnemyInput.UsedWorkshopsInRangeAndNotInDanger, 2.0f },
+                { EEnemyInput.UnassignedFoodsInRangeAndNotInDanger, 10.0f },
+                { EEnemyInput.UnfinishedTribesInRangeAndNotInDanger, 1.0f },
+                { EEnemyInput.UnfinishedWorkshopsInRangeAndNotInDanger, 1.0f },
+                { EEnemyInput.TribesDefensive, 3.0f },
+                { EEnemyInput.TribesAggresive, 3.0f },
+                { EEnemyInput.Churches, 1.0f },
+                { EEnemyInput.UnbalancedTribes, 0.0f },
+                { EEnemyInput.BuildingTribeGhouls, 0.0f },
+                { EEnemyInput.BuildingWorkshopGhouls, 0.0f}
+            };
+            
+            Dictionary<EEnemyInput, double> initialStateLateGameDefending = new Dictionary<EEnemyInput, double>()
+            {
+                { EEnemyInput.TotalGhouls, 32.0f },
+                { EEnemyInput.IdlingGhouls, 15.0f },
+                { EEnemyInput.GhoulsInDanger, 5.0f },
+                { EEnemyInput.HungryIdlingGhouls, 5.0f },
+                { EEnemyInput.GhoulsWithWeapons, 11.0f },
+                { EEnemyInput.AttackingGhouls, 0.0f },
+                { EEnemyInput.AttackingGhoulsWithWeapons, 0.0f },
+                { EEnemyInput.DefendingGhouls, 2.0f },
+                { EEnemyInput.GhoulsInWorkshops, 2.0f },
+                { EEnemyInput.DefendingGhoulsWithWeapons, 3.0f },
+                { EEnemyInput.IdlingGhoulsWithWeapon, 8.0f },
+                { EEnemyInput.IdlingGhoulsNotHungry, 10.0f  },
+                { EEnemyInput.UnassignedWeaponsInRangeAndNotInDanger, 5.0f },
+                { EEnemyInput.UnusedWorkshopsInRangeAndNotInDanger, 2.0f },
+                { EEnemyInput.UsedWorkshopsInRangeAndNotInDanger, 2.0f },
+                { EEnemyInput.UnassignedFoodsInRangeAndNotInDanger, 10.0f },
+                { EEnemyInput.UnfinishedTribesInRangeAndNotInDanger, 1.0f },
+                { EEnemyInput.UnfinishedWorkshopsInRangeAndNotInDanger, 1.0f },
+                { EEnemyInput.TribesDefensive, 3.0f },
+                { EEnemyInput.TribesAggresive, 3.0f },
+                { EEnemyInput.Churches, 1.0f },
+                { EEnemyInput.UnbalancedTribes, 0.0f },
+                { EEnemyInput.BuildingTribeGhouls, 0.0f },
+                { EEnemyInput.BuildingWorkshopGhouls, 0.0f}
+            };
+            
+            Dictionary<EEnemyInput, double> initialStateLateGameAttacking = new Dictionary<EEnemyInput, double>()
+            {
+                { EEnemyInput.TotalGhouls, 32.0f },
+                { EEnemyInput.IdlingGhouls, 15.0f },
+                { EEnemyInput.GhoulsInDanger, 5.0f },
+                { EEnemyInput.HungryIdlingGhouls, 5.0f },
+                { EEnemyInput.GhoulsWithWeapons, 11.0f },
+                { EEnemyInput.AttackingGhouls, 2.0f },
+                { EEnemyInput.AttackingGhoulsWithWeapons, 3.0f },
+                { EEnemyInput.DefendingGhouls, 0.0f },
+                { EEnemyInput.GhoulsInWorkshops, 2.0f },
+                { EEnemyInput.DefendingGhoulsWithWeapons, 0.0f },
+                { EEnemyInput.IdlingGhoulsWithWeapon, 8.0f },
+                { EEnemyInput.IdlingGhoulsNotHungry, 10.0f  },
+                { EEnemyInput.UnassignedWeaponsInRangeAndNotInDanger, 5.0f },
+                { EEnemyInput.UnusedWorkshopsInRangeAndNotInDanger, 2.0f },
+                { EEnemyInput.UsedWorkshopsInRangeAndNotInDanger, 2.0f },
+                { EEnemyInput.UnassignedFoodsInRangeAndNotInDanger, 10.0f },
+                { EEnemyInput.UnfinishedTribesInRangeAndNotInDanger, 1.0f },
+                { EEnemyInput.UnfinishedWorkshopsInRangeAndNotInDanger, 1.0f },
+                { EEnemyInput.TribesDefensive, 3.0f },
+                { EEnemyInput.TribesAggresive, 3.0f },
+                { EEnemyInput.Churches, 1.0f },
+                { EEnemyInput.UnbalancedTribes, 0.0f },
+                { EEnemyInput.BuildingTribeGhouls, 0.0f },
+                { EEnemyInput.BuildingWorkshopGhouls, 0.0f }
+            };
+            
+            Dictionary<EEnemyInput, double> initialStateMidGame = new Dictionary<EEnemyInput, double>()
+            {
+                { EEnemyInput.TotalGhouls, 20.0f },
+                { EEnemyInput.IdlingGhouls, 10.0f },
+                { EEnemyInput.GhoulsInDanger, 1.0f },
+                { EEnemyInput.HungryIdlingGhouls, 5.0f },
+                { EEnemyInput.GhoulsWithWeapons, 1.0f },
+                { EEnemyInput.AttackingGhouls, 0.0f },
+                { EEnemyInput.AttackingGhoulsWithWeapons, 0.0f },
+                { EEnemyInput.DefendingGhouls, 0.0f },
+                { EEnemyInput.GhoulsInWorkshops, 2.0f },
+                { EEnemyInput.DefendingGhoulsWithWeapons, 0.0f },
+                { EEnemyInput.IdlingGhoulsWithWeapon, 2.0f },
+                { EEnemyInput.IdlingGhoulsNotHungry, 10.0f },
+                { EEnemyInput.UnassignedWeaponsInRangeAndNotInDanger, 2.0f },
+                { EEnemyInput.UnusedWorkshopsInRangeAndNotInDanger, 0.0f },
+                { EEnemyInput.UsedWorkshopsInRangeAndNotInDanger, 1.0f },
+                { EEnemyInput.UnassignedFoodsInRangeAndNotInDanger, 7.0f },
+                { EEnemyInput.UnfinishedTribesInRangeAndNotInDanger, 1.0f },
+                { EEnemyInput.UnfinishedWorkshopsInRangeAndNotInDanger, 1.0f },
+                { EEnemyInput.TribesDefensive, 1.0f },
+                { EEnemyInput.TribesAggresive, 1.0f },
+                { EEnemyInput.Churches, 1.0f },
+                { EEnemyInput.UnbalancedTribes, 0.0f },
+                { EEnemyInput.BuildingTribeGhouls, 2.0f },
+                { EEnemyInput.BuildingWorkshopGhouls, 2.0f }
+            };
+
+            var initialStates = new List<Dictionary<EEnemyInput, double>>() { initialStateStandard,
+                    initialStateLateGame,
+                    initialStateLateGameDefending,
+                    initialStateLateGameAttacking,
+                    initialStateMidGame };
+
             Random prng = new Random();
             int batchSize = 1024;
-            var environment = new EnvironmentRts(new List<Dictionary<EEnemyInput, double>>() { initialState });
+            var environment = new EnvironmentRts(initialStates);
 
             EGreedyStrategy trainingStrategy = new EGreedyStrategy(0.5f);
             GreedyStrategy evaluationStrategy = new GreedyStrategy();
 
             NfqArgs nfqArgs = new NfqArgs(environment,
-                evaluationStrategy, 
-                trainingStrategy, 
+                evaluationStrategy,
+                trainingStrategy,
                 batchSize: batchSize,
-                maxMinutes: 0.01f);
+                maxMinutes: 0.01f);//480f);
 
             Nfq nfq = new Nfq(nfqArgs);
             NfqResult result = nfq.Train();
 
-            Serializer.SerializeObject(fileName, result.ToNeuralNetworkResults());
+            string file = fileNameNoExt + "_0_" + DateTime.Now.ToString("yyyy_MM_dd-HH_mm") + ".bin";
+            for (int i = 0; File.Exists(file); i++)
+                file = fileNameNoExt + "_" + i + "_" + DateTime.Now.ToString("yyyy_MM_dd-HH_mm") + ".bin";
 
-            Console.WriteLine("\n" + result.EndReason + ". Model saved to Desktop.");
+            Serializer.SerializeObject(file, result.ToNeuralNetworkResults());
+
+            Console.WriteLine("\n" + result.EndReason + " Model saved as: " + file);
             
             Console.ReadKey();
         }
 
-        private static void TestModel(TrainingResult _trainingResult)
+        private static void TestModel(string _filename)
         {
+            if (!File.Exists(_filename))
+                throw new ArgumentException("File name not existant");
+
+
+            TrainingResult _trainingResult = Serializer.DeserializeObject(_filename);
             NeuralNetwork nn = new NeuralNetwork(_trainingResult);
 
             double[] shouldTryDefend = new double[]
@@ -146,7 +276,7 @@ namespace ReinforcementLearning
                 20.0f, //EEnemyInput.IdlingGhouls
                 0.0f, //EEnemyInput.GhoulsInDanger
                 20.0f, //EEnemyInput.HungryIdlingGhouls
-                8.0f, //EEnemyInput.GhoulsWithWeapons
+                0.0f, //EEnemyInput.GhoulsWithWeapons
                 0.0f, //EEnemyInput.AttackingGhouls
                 0.0f, //EEnemyInput.AttackingGhoulsWithWeapons
                 0.0f, //EEnemyInput.DefendingGhouls

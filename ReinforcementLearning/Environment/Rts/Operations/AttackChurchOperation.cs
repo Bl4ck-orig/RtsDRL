@@ -20,7 +20,10 @@
                 GhoulAmountHandler.GetAmountOfGhoulsForAttack((int)_stats.Variables[EEnemyInput.IdlingGhouls].Value),
                 (int)_stats.Variables[EEnemyInput.GhoulsWithWeapons].Value);
 
-            _stats.Variables[EEnemyInput.IdlingGhouls].Value -= ghoulsAttackApplicationValues.GhoulsWithoutWeaponForAttack;
+            int totalGhouls = ghoulsAttackApplicationValues.GhoulsWithWeaponForAttack +
+                ghoulsAttackApplicationValues.GhoulsWithoutWeaponForAttack;
+            _stats.Variables[EEnemyInput.IdlingGhouls].Value -= totalGhouls;
+            _stats.Variables[EEnemyInput.IdlingGhoulsNotHungry].Value -= totalGhouls;
             _stats.Variables[EEnemyInput.IdlingGhoulsWithWeapon].Value -= ghoulsAttackApplicationValues.GhoulsWithWeaponForAttack;
             _stats.Variables[EEnemyInput.AttackingGhouls].Value += ghoulsAttackApplicationValues.GhoulsWithoutWeaponForAttack;
             _stats.Variables[EEnemyInput.AttackingGhoulsWithWeapons].Value += ghoulsAttackApplicationValues.GhoulsWithWeaponForAttack;

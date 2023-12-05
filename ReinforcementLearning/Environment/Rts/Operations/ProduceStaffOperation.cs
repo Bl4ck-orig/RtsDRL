@@ -12,7 +12,7 @@ namespace ReinforcementLearning
 
         public override EEnemyOperation OperationType => EEnemyOperation.ProduceStaffWeapon;
 
-        protected override EWeapon ProductionType => EWeapon.Staff;
+        protected override EWeapon ProductionType => EWeapon.Staff; 
 
         protected override int GetUnusedWorkshopsInRangeAndNotInDangerOfStats(EnvironmentRts _stats)
         {

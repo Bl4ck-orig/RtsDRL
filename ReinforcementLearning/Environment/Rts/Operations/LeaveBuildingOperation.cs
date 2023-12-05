@@ -17,6 +17,7 @@
         public override void ApplySimplifiedOperation(EnvironmentRts _stats)
         {
             _stats.Variables[EEnemyInput.IdlingGhouls].Value++;
+            _stats.Variables[EEnemyInput.IdlingGhoulsNotHungry].Value++;
             _stats.Variables[EEnemyInput.GhoulsInWorkshops].Value--;
         }
 
