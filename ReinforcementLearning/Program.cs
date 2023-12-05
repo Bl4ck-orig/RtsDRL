@@ -10,8 +10,6 @@ namespace ReinforcementLearning
     {
         private static string fileNameNoExt = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Model";
 
-
-
         static void Main(string[] args)
         {
             //RunQLearning();
