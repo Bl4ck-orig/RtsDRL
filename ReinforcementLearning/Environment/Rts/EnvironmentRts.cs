@@ -19,15 +19,16 @@ namespace ReinforcementLearning
 
         private const double DEFEAT_REWARD = -1.0f;
         private const double VICTORY_REWARD = 1.0f;
+        private const double OPERATION_NOT_POSSIBLE_CHOSEN_REWARD = -0.2f;
 
         private const double GHOULS_IN_DANGER_INCREASE_CHANCE = 0.1f;
         private const double GHOULS_IN_DANGER_KILL_CHANCE = 0.15f;
         private const double GHOULS_START_HUNGRY_CHANCE_PER_GHOUL = 0.1f;
         private const double REDUCE_GHOULS_IN_DANGER_CHANCE_PER_DEFENDING_GHOUL = 0.15f;
         private const double REDUCE_GHOULS_IN_DANGER_CHANCE_PER_DEFENDING_GHOUL_WITH_WEAPON = 0.17f;
-        private const double INCREASE_WEAPONS_CHANCE_PER_WORKING_GHOUL = 0.4f;
-        private const double INCREASE_TRIBES_CHANCE_PER_BUILDING_GHOUL = 0.15f;
-        private const double INCREASE_WORKSHOP_CHANCE_PER_BUILDING_GHOUL = 0.15f;
+        private const double INCREASE_WEAPONS_CHANCE_PER_WORKING_GHOUL = 0.25f;
+        private const double INCREASE_TRIBES_CHANCE_PER_BUILDING_GHOUL = 0.05f;
+        private const double INCREASE_WORKSHOP_CHANCE_PER_BUILDING_GHOUL = 0.05f;
         private const double REPRODUCTION_CHANCE_PER_TRIBE = 0.05f;
         private const double REPRODUCTION_CHANCE_REDUCTION_PER_UNBALANCED_TRIBE = 0.02f;
         private const double INCREASE_FOODS_CHANCE_PER_GHOUL = 0.02f;
@@ -109,7 +110,8 @@ namespace ReinforcementLearning
 
             EEnemyOperation action = (EEnemyOperation)_action;
 
-            if (enemyOperations[action].IsSimplifiedOperationPossible(this))
+            bool wasOperationSelectedPossible = false;
+            if (wasOperationSelectedPossible = enemyOperations[action].IsSimplifiedOperationPossible(this))
                 enemyOperations[action].ApplySimplifiedOperation(this);
 
             Tick(_prng);
@@ -122,6 +124,8 @@ namespace ReinforcementLearning
                 deltaReward += DEFEAT_REWARD;
             if (victory)
                 deltaReward += VICTORY_REWARD;
+            if (wasOperationSelectedPossible)
+                deltaReward += OPERATION_NOT_POSSIBLE_CHOSEN_REWARD;
 
             return (State, deltaReward, defeat || victory);
         }

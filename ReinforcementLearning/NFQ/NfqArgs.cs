@@ -12,18 +12,20 @@
         public readonly IStrategy ExplorationStrategy;
         public readonly IStrategy TrainingStrategy;
         public readonly int TimeStepLimit;
+        public readonly int HiddenLayerSize;
         public readonly int Seed;
 
         public NfqArgs(Environment<double[]> environment, 
             IStrategy explorationStrategy,
             IStrategy trainingStrategy,
-            double learnRate = 0, 
+            double learnRate = 0.01f, 
             int batchSize = 1024, 
             int epochs = 40, 
             double gamma = 1.0f, 
             double maxMinutes = 600f, 
             long maxEpisodes = 10000,
             int _timeStepLimit = 200,
+            int _hiddenLayerSize = 512,
             int seed = -1)
         {
             LearnRate = learnRate;
@@ -37,6 +39,7 @@
             ExplorationStrategy = explorationStrategy;
             TrainingStrategy = trainingStrategy;
             TimeStepLimit = _timeStepLimit;
+            HiddenLayerSize = _hiddenLayerSize;
             Seed = seed;
         }
     }

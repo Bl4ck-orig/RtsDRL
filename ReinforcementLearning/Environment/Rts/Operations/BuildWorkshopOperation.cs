@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace ReinforcementLearning
+﻿namespace ReinforcementLearning
 {
     public abstract class BuildWorkshopOperation : EnemyOperation
     {
@@ -22,7 +19,7 @@ namespace ReinforcementLearning
 
             _stats.Variables[EEnemyInput.BuildingWorkshopGhouls].Value += amountOfGhoulsForBuilding;
             _stats.Variables[EEnemyInput.IdlingGhouls].Value -= amountOfGhoulsForBuilding;
-
+            _stats.Variables[EEnemyInput.IdlingGhoulsNotHungry].Value -= amountOfGhoulsForBuilding;
             //IncreaseUnusedWorkshops(_stats);
         }
 
@@ -32,7 +29,7 @@ namespace ReinforcementLearning
         public override bool IsSimplifiedOperationPossible(EnvironmentRts _stats) =>
             IsOperationPossible((int)GetUnfinishedWorkshopsAmountOfStats(_stats),
                 (int)_stats.Variables[EEnemyInput.TotalGhouls].Value,
-                (int)_stats.Variables[EEnemyInput.IdlingGhouls].Value);
+                (int)_stats.Variables[EEnemyInput.IdlingGhoulsNotHungry].Value);
 
         protected abstract double GetUnfinishedWorkshopsAmountOfStats(EnvironmentRts _stats);
         #endregion -----------------------------------------------------------------

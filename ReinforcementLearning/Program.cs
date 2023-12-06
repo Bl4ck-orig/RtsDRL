@@ -16,7 +16,7 @@ namespace ReinforcementLearning
 
             RunNfq();
 
-            //TestModel(Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\FILE);
+            //TestModel(Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\FILE");
         }
 
         private static void RunQLearning()
@@ -105,7 +105,7 @@ namespace ReinforcementLearning
                 { EEnemyInput.UsedWorkshopsInRangeAndNotInDanger, 2.0f },
                 { EEnemyInput.UnassignedFoodsInRangeAndNotInDanger, 10.0f },
                 { EEnemyInput.UnfinishedTribesInRangeAndNotInDanger, 1.0f },
-                { EEnemyInput.UnfinishedWorkshopsInRangeAndNotInDanger, 1.0f },
+                { EEnemyInput.UnfinishedWorkshopsInRangeAndNotInDanger, 0.0f },
                 { EEnemyInput.TribesDefensive, 3.0f },
                 { EEnemyInput.TribesAggresive, 3.0f },
                 { EEnemyInput.Churches, 1.0f },
@@ -132,7 +132,7 @@ namespace ReinforcementLearning
                 { EEnemyInput.UnusedWorkshopsInRangeAndNotInDanger, 2.0f },
                 { EEnemyInput.UsedWorkshopsInRangeAndNotInDanger, 2.0f },
                 { EEnemyInput.UnassignedFoodsInRangeAndNotInDanger, 10.0f },
-                { EEnemyInput.UnfinishedTribesInRangeAndNotInDanger, 1.0f },
+                { EEnemyInput.UnfinishedTribesInRangeAndNotInDanger, 0.0f },
                 { EEnemyInput.UnfinishedWorkshopsInRangeAndNotInDanger, 1.0f },
                 { EEnemyInput.TribesDefensive, 3.0f },
                 { EEnemyInput.TribesAggresive, 3.0f },
@@ -170,11 +170,14 @@ namespace ReinforcementLearning
                 { EEnemyInput.BuildingWorkshopGhouls, 2.0f }
             };
 
-            var initialStates = new List<Dictionary<EEnemyInput, double>>() { initialStateStandard,
-                    initialStateLateGame,
-                    initialStateLateGameDefending,
-                    initialStateLateGameAttacking,
-                    initialStateMidGame };
+            var initialStates = new List<Dictionary<EEnemyInput, double>>() 
+            { 
+                initialStateStandard,
+                initialStateLateGame,
+                initialStateLateGameDefending,
+                initialStateLateGameAttacking,
+                initialStateMidGame 
+            };
 
             Random prng = new Random();
             int batchSize = 1024;
@@ -187,7 +190,7 @@ namespace ReinforcementLearning
                 evaluationStrategy,
                 trainingStrategy,
                 batchSize: batchSize,
-                maxMinutes: 0.01f);//480f);
+                maxMinutes: 480f);
 
             Nfq nfq = new Nfq(nfqArgs);
             NfqResult result = nfq.Train();
@@ -271,7 +274,7 @@ namespace ReinforcementLearning
             double[] shouldEat = new double[]
             {
                 20.0f, //EEnemyInput.TotalGhouls
-                20.0f, //EEnemyInput.IdlingGhouls
+                0.0f, //EEnemyInput.IdlingGhouls
                 0.0f, //EEnemyInput.GhoulsInDanger
                 20.0f, //EEnemyInput.HungryIdlingGhouls
                 0.0f, //EEnemyInput.GhoulsWithWeapons
@@ -316,7 +319,7 @@ namespace ReinforcementLearning
                 0.0f, //EEnemyInput.UnassignedFoodsInRangeAndNotInDanger
                 0.0f, //EEnemyInput.UnfinishedTribesInRangeAndNotInDanger
                 0.0f, //EEnemyInput.UnfinishedWorkshopsInRangeAndNotInDanger
-                1.0f, //EEnemyInput.TribesDefensive
+                4.0f, //EEnemyInput.TribesDefensive
                 1.0f, //EEnemyInput.TribesAggresive
                 0.0f, //EEnemyInput.Churches
                 4.0f, //EEnemyInput.UnbalancedTribes

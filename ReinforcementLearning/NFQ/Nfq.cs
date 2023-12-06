@@ -45,7 +45,7 @@ namespace ReinforcementLearning
             prng = seed == -1 ? new Random() : new Random(seed);
             nS = environment.ObservationSpaceSize;
             nA = environment.ActionSpaceSize;
-            onlineModel = new NeuralNetwork(nS, nA, batchSize, prng);
+            onlineModel = new NeuralNetwork(nS, nA, _args.HiddenLayerSize, batchSize, prng);
 
             experiences = new List<Experience<double[]>>();
             episodeRewards = new List<double>();

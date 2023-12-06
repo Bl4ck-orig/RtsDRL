@@ -36,7 +36,7 @@ namespace ReinforcementLearning
         private double[,] changeInHiddenLayerWeights;
         private double[,] changeInHiddenBias;
 
-        public NeuralNetwork(int _inputSize, int _outputSize, int _batchSize, Random _prng)
+        public NeuralNetwork(int _inputSize, int _outputSize, int _hiddenLayerSize, int _batchSize, Random _prng)
         {
             inputSize = _inputSize;
             outputSize = _outputSize;
@@ -45,7 +45,7 @@ namespace ReinforcementLearning
 
             inputLayer = new double[inputSize, batchSize];
 
-            hiddenLayerNodesAmount = outputSize;
+            hiddenLayerNodesAmount = _hiddenLayerSize;
             hiddenLayer = new double[hiddenLayerNodesAmount, batchSize];
             hiddenWeights = new double[hiddenLayerNodesAmount, inputSize];
             hiddenBias = new double[hiddenLayerNodesAmount, 1];
