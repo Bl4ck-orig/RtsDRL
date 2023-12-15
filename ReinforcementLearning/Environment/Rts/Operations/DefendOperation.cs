@@ -29,7 +29,7 @@ namespace ReinforcementLearning
 
         public override bool IsSimplifiedOperationPossible(EnvironmentRts _stats) =>
             IsOperationPossible((int)_stats.Variables[EEnemyInput.GhoulsInDanger].Value, 
-                (int)_stats.Variables[EEnemyInput.IdlingGhouls].Value);
+                (int)_stats.Variables[EEnemyInput.IdlingGhoulsNotHungry].Value);
         #endregion -----------------------------------------------------------------
 
         private bool IsOperationPossible(int _ghoulsInDanger, int _idlingGhouls)

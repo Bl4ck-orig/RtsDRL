@@ -27,7 +27,7 @@
         public override bool IsSimplifiedOperationPossible(EnvironmentRts _stats) =>
             IsOperationPossible((int)_stats.Variables[EEnemyInput.UnfinishedTribesInRangeAndNotInDanger].Value, 
                 (int)_stats.Variables[EEnemyInput.TotalGhouls].Value, 
-                (int)_stats.Variables[EEnemyInput.IdlingGhouls].Value);
+                (int)_stats.Variables[EEnemyInput.IdlingGhoulsNotHungry].Value);
         #endregion -----------------------------------------------------------------
 
         private bool IsOperationPossible(int _unfinishedTribesInRangeAndNotInDanger, int _totalGhouls, int _idlingGhouls)

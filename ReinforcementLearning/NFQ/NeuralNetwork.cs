@@ -143,8 +143,9 @@ namespace ReinforcementLearning
         private void ForwardPropagateOutputLayer()
         {
             outputLayerZ = outputWeights.DotProduct(hiddenLayer).AddVector(outputBias);
+            outputLayer = Commons.SoftMax(outputLayerZ);
             // Cloning for Linear regression
-            outputLayer = outputLayerZ.Clone() as double[,];
+            //outputLayer = outputLayerZ.Clone() as double[,];
         }
         #endregion -----------------------------------------------------------------
 
@@ -156,11 +157,11 @@ namespace ReinforcementLearning
             return outputLayer.Clone() as double[,];
         }
 
-        public double[] GetHighestRewardOutputIndex(double[,] _inputs)
+        public double[] GetHighestRewardVector(double[,] _inputs)
         {
             SetInputLayerByMatrix(_inputs);
             ApplyForwardPropagation();
-            return GetHighestRewardOutputIndex();
+            return GetHighestRewardVector();
         }
 
         private void SetInputLayerByMatrix(double[,] _inputs)
@@ -188,7 +189,7 @@ namespace ReinforcementLearning
             return GetHighestRewardRow();
         }
 
-        private double[] GetHighestRewardOutputIndex()
+        private double[] GetHighestRewardVector()
         {
             double[] maxQValues = new double[batchSize];
 

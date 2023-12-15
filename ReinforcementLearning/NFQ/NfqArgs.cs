@@ -15,32 +15,31 @@
         public readonly int HiddenLayerSize;
         public readonly int Seed;
 
-        public NfqArgs(Environment<double[]> environment, 
-            IStrategy explorationStrategy,
-            IStrategy trainingStrategy,
-            double learnRate = 0.01f, 
-            int batchSize = 1024, 
-            int epochs = 40, 
-            double gamma = 1.0f, 
-            double maxMinutes = 600f, 
-            long maxEpisodes = 10000,
+        public NfqArgs(Environment<double[]> _environment, 
+            IStrategy _explorationStrategy,
+            IStrategy _trainingStrategy,
+            double _learnRate = 0.01f, 
+            int _batchSize = 1024, 
+            int _epochs = 40, 
+            double _gamma = 1.0f, 
+            double _maxMinutes = 600f, 
+            long _maxEpisodes = 10000,
             int _timeStepLimit = 200,
             int _hiddenLayerSize = 512,
-            int seed = -1)
+            int _seed = -1)
         {
-            LearnRate = learnRate;
-            BatchSize = batchSize;
-            Epochs = epochs;
-            Environment = environment;
-            Seed = seed;
-            Gamma = gamma;
-            MaxMinutes = maxMinutes;
-            MaxEpisodes = maxEpisodes;
-            ExplorationStrategy = explorationStrategy;
-            TrainingStrategy = trainingStrategy;
+            LearnRate = _learnRate;
+            BatchSize = _batchSize;
+            Epochs = _epochs;
+            Environment = _environment;
+            Gamma = _gamma;
+            MaxMinutes = _maxMinutes;
+            MaxEpisodes = _maxEpisodes;
+            ExplorationStrategy = _explorationStrategy;
+            TrainingStrategy = _trainingStrategy;
             TimeStepLimit = _timeStepLimit;
             HiddenLayerSize = _hiddenLayerSize;
-            Seed = seed;
+            Seed = _seed;
         }
     }
 }

@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReinforcementLearning", "Re
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestProject", "TestProject\TestProject.csproj", "{69A695E6-E5F3-40B0-AE8B-9C8AFB9D729B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlotResult", "PlotResult\PlotResult.csproj", "{E8C4444A-DB9B-4115-B730-5382B0FE6BCE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{69A695E6-E5F3-40B0-AE8B-9C8AFB9D729B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{69A695E6-E5F3-40B0-AE8B-9C8AFB9D729B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{69A695E6-E5F3-40B0-AE8B-9C8AFB9D729B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E8C4444A-DB9B-4115-B730-5382B0FE6BCE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E8C4444A-DB9B-4115-B730-5382B0FE6BCE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E8C4444A-DB9B-4115-B730-5382B0FE6BCE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E8C4444A-DB9B-4115-B730-5382B0FE6BCE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

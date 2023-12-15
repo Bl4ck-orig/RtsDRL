@@ -32,6 +32,7 @@ namespace ReinforcementLearning
         public Nfq(NfqArgs _args)
         {
             learnRate = _args.LearnRate;
+            gamma = _args.Gamma;
             batchSize = _args.BatchSize;
             epochs = _args.Epochs;
             environment = _args.Environment;
@@ -66,7 +67,7 @@ namespace ReinforcementLearning
             {
                 Dialogue.PrintProgress(episode, (int)maxEpisodes, episode == 1);
 
-                double[] state = environment.Reset(timeStepLimit != 0, prng, timeStepLimit);
+                double[] state = environment.Reset(timeStepLimit != 0, prng, true, timeStepLimit);
                 bool isTerminal = false;
                 episodeRewards.Add(0.0f);
                 episodeTimeStep.Add(0);
@@ -130,8 +131,8 @@ namespace ReinforcementLearning
             List<double> isTerminals = experiences.Select(x => x.IsFailure).ToList();
 
             double[,] nextStateFeatureMatrix = Commons.ToMatrix(nextStates).Transpose(); 
-            double[] highestRewartOutputIndex = onlineModel.GetHighestRewardOutputIndex(nextStateFeatureMatrix);
-            double[,] maxAQSp = Commons.Unsqueeze(highestRewartOutputIndex); 
+            double[] highestRewardOutputIndex = onlineModel.GetHighestRewardVector(nextStateFeatureMatrix);
+            double[,] maxAQSp = Commons.Unsqueeze(highestRewardOutputIndex); 
             double[] oneMinusTerminals = Commons.SubtractFromValue(1.0f, isTerminals).ToArray();
             double[,] targetQS_a = Commons.MultiplyMatrixByArray(maxAQSp, oneMinusTerminals);
             double[,] targetQS_b = Commons.AddMatrixBy(targetQS_a, gamma);

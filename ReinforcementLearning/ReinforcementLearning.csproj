@@ -35,6 +35,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
@@ -73,6 +76,7 @@
     <Compile Include="Environment\Rts\Operations\ProduceSwordOperation.cs" />
     <Compile Include="Environment\Rts\Operations\ProduceWeaponOperation.cs" />
     <Compile Include="Environment\Rts\Operations\SendGhoulsToTribeDefensiveOperation.cs" />
+    <Compile Include="Environment\Rts\StartStates.cs" />
     <Compile Include="Environment\StateAction.cs" />
     <Compile Include="Environment\StepAction.cs" />
     <Compile Include="Environment\EnvironemntFrozenLake.cs" />
@@ -96,12 +100,13 @@
     <Compile Include="Utils\Commons.cs" />
     <Compile Include="QLearnings\QLearningArgs.cs" />
     <Compile Include="QLearnings\QLearningResult.cs" />
+    <Compile Include="Utils\DataExporter.cs" />
     <Compile Include="Utils\Dialogue.cs" />
     <Compile Include="Utils\Serializer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

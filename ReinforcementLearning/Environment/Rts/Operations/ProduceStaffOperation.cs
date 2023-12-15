@@ -16,7 +16,7 @@ namespace ReinforcementLearning
 
         protected override int GetUnusedWorkshopsInRangeAndNotInDangerOfStats(EnvironmentRts _stats)
         {
-            return (int)_stats.Variables[EEnemyInput.UsedWorkshopsInRangeAndNotInDanger].Value;
+            return (int)_stats.Variables[EEnemyInput.UnusedWorkshopsInRangeAndNotInDanger].Value;
         }
     }
 }

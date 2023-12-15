@@ -13,13 +13,17 @@ namespace ReinforcementLearning
 
         private int timeStepLimit;
         private bool hasTimeStepLimit;
+        private int currentInitialState;
 
-        public virtual T Reset(bool _hasTimeStepLimit, Random _prng, int _timeStepLimit = 0)
+        public virtual T Reset(bool _hasTimeStepLimit, Random _prng, bool _initialStateRandom, int _timeStepLimit = 0)
         {
             timeStepLimit = _timeStepLimit;
             hasTimeStepLimit = _hasTimeStepLimit;
             StepsCount = 0;
-            return State = InitialStates[_prng.Next(InitialStates.Count)];
+            if(_initialStateRandom)
+                return State = InitialStates[_prng.Next(InitialStates.Count)];
+            else
+                return State = InitialStates[currentInitialState++ % InitialStates.Count];
         }
 
         public StepResult<T> Step(int _action, Random _prng)

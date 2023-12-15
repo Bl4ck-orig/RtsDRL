@@ -26,7 +26,7 @@ namespace TestProject.Training
             int outputSize = 5;
             int batchSize = 3;
 
-            var fcq = new NeuralNetwork(inputSize, outputSize, batchSize, new System.Random());
+            var fcq = new NeuralNetwork(inputSize, outputSize, outputSize, batchSize, new System.Random());
 
             double[,] inputLayer = GetPrivateFieldValue<double[,]>(fcq, "inputLayer");
             double[,] hiddenWeights = GetPrivateFieldValue<double[,]>(fcq, "hiddenWeights");
