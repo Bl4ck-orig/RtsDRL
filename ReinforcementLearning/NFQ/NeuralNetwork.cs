@@ -11,11 +11,12 @@ namespace ReinforcementLearning
 
         private double[,] hiddenWeights;
         private double[,] hiddenBias;
+
         private double[,] outputWeights;
         private double[,] outputBias;
 
         private int hiddenLayerNodesAmount;
-        private double learningRate = 0.1f;
+        private double learningRate = 0.0001f;
 
         private double[,] inputLayer;
 
@@ -54,7 +55,9 @@ namespace ReinforcementLearning
             outputWeights = new double[outputSize, hiddenLayerNodesAmount];
             outputBias = new double[outputSize, 1];
 
-            SetUpRandomNetwork(_prng);
+            //SetUpRandomNetwork(_prng);
+
+            SetUpNetworkXavier(_prng);
         }
 
         private void SetUpRandomNetwork(Random _prng)
@@ -88,6 +91,27 @@ namespace ReinforcementLearning
                 for (int y = 0; y < outputBias.GetLength(1); y++)
                 {
                     outputBias[x, y] = _prng.NextDouble() - 0.5f;
+                }
+            }
+        }
+
+        private void SetUpNetworkXavier(Random _prng)
+        {
+            for (int x = 0; x < hiddenWeights.GetLength(0); x++)
+            {
+                for (int y = 0; y < hiddenWeights.GetLength(1); y++)
+                {
+                    double distribution = Math.Sqrt((double)6 / (hiddenLayerNodesAmount + inputSize));
+                    hiddenWeights[x, y] = _prng.NextDouble() * 2 * distribution - distribution;
+                }
+            }
+
+            for (int x = 0; x < outputWeights.GetLength(0); x++)
+            {
+                for (int y = 0; y < outputWeights.GetLength(1); y++)
+                {
+                    double distribution = Math.Sqrt((double)6 / (hiddenLayerNodesAmount + outputSize));
+                    outputWeights[x, y] = _prng.NextDouble() * 2 * distribution - distribution;
                 }
             }
         }
@@ -343,6 +367,11 @@ namespace ReinforcementLearning
             hiddenBias = hiddenBias.Subtract(changeInHiddenBias.Multiply(learningRate));
             outputWeights = outputWeights.Subtract(changeInOutputWeights.Multiply(learningRate));
             outputBias = outputBias.Subtract(changeInOutputBias.Multiply(learningRate));
+        }
+
+        public bool HasNan()
+        {
+            return Double.IsNaN(hiddenWeights[0, 0]);
         }
 
         public NeuralNetworkValues GetNeuralNetworkValues()

@@ -12,6 +12,8 @@
 
         void AdjustWeightsAndBiases();
 
+        bool HasNan();
+
         NeuralNetworkValues GetNeuralNetworkValues();
     }
 }

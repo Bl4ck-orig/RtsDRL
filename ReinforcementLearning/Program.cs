@@ -10,19 +10,20 @@ namespace ReinforcementLearning
     internal class Program
     {
         private static string fileNameNoExt = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Model";
-        private static string fileName = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Model_0_2023_12_15-22_01.bin";
+        private static string fileName = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\New.bin";
         private static string fileNameReward = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Rewards.txt";
 
         private static int batchSize = 512;
+        private static double learnRate = 0.000001f; 
         private static double maxMinutes = 480f;
         private static int timeStepLimit = 100;
 
         static void Main(string[] args)
         {
             //RunQLearning();
-            //RunNfq();
+            RunNfq();
             //ExportRewardData(fileNameReward);
-            TestModel(fileName);
+            //TestModel(fileName);
             //TestModelFull(fileName);
         }
 
@@ -42,14 +43,14 @@ namespace ReinforcementLearning
             var initialStates = new List<Dictionary<EEnemyInput, double>>() 
             { 
                 StartStates.initialStateStandard,
-                StartStates.initialStateLateGame,
-                StartStates.initialStateLateGameDefending,
-                StartStates.initialStateLateGameAttacking,
-                StartStates.initialStateMidGame,
-                StartStates.shouldTryDefend,
-                StartStates.shouldAttack,
-                StartStates.shouldEat,
-                StartStates.shouldTryBalanceTribes,
+                //StartStates.initialStateLateGame,
+                //StartStates.initialStateLateGameDefending,
+                //StartStates.initialStateLateGameAttacking,
+                //StartStates.initialStateMidGame,
+                //StartStates.shouldTryDefend,
+                //StartStates.shouldAttack,
+                //StartStates.shouldEat,
+                //StartStates.shouldTryBalanceTribes,
             };
 
             Random prng = new Random();
@@ -61,6 +62,7 @@ namespace ReinforcementLearning
             NfqArgs nfqArgs = new NfqArgs(environment,
                 evaluationStrategy,
                 trainingStrategy,
+                _learnRate: learnRate,
                 _batchSize: batchSize,
                 _maxMinutes: maxMinutes,
                 _timeStepLimit: timeStepLimit);
@@ -109,7 +111,32 @@ namespace ReinforcementLearning
             Console.ReadKey();
         }
 
+
         private static void TestModelFull(string _filename)
+        {
+            Console.WriteLine("Standard");
+            TestModelState(_filename, StartStates.initialStateStandard);
+            //Console.WriteLine("Late Game");
+            //TestModelState(_filename, StartStates.initialStateLateGame);
+            //Console.WriteLine("Late Game Defending");
+            //TestModelState(_filename, StartStates.initialStateLateGameDefending);
+            //Console.WriteLine("Late Game Attacking");
+            //TestModelState(_filename, StartStates.initialStateLateGameAttacking);
+            //Console.WriteLine("Mid Game");
+            //TestModelState(_filename, StartStates.initialStateMidGame);
+            //Console.WriteLine("Should Defend");
+            //TestModelState(_filename, StartStates.shouldTryDefend);
+            //Console.WriteLine("Should Attack");
+            //TestModelState(_filename, StartStates.shouldAttack);
+            //Console.WriteLine("Should Eat");
+            //TestModelState(_filename, StartStates.shouldEat);
+            //Console.WriteLine("Should balance tribes");
+            //TestModelState(_filename, StartStates.shouldTryBalanceTribes);
+            Console.ReadKey();
+        }
+
+
+        private static void TestModelState(string _filename, Dictionary<EEnemyInput, double> _state)
         {
             if (!File.Exists(_filename))
                 throw new ArgumentException("File name not existant");
@@ -118,12 +145,12 @@ namespace ReinforcementLearning
 
             NeuralNetwork nn = new NeuralNetwork(trainingResult);
 
-            Random prngTest = new Random(1);
-            Random prngDummy = new Random(1);
+            Random prngTest = new Random();
+            Random prngDummy = new Random();
             GreedyStrategy greedy = new GreedyStrategy();
 
-            EnvironmentRts rtsTest = new EnvironmentRts(new List<Dictionary<EEnemyInput, double>>() { StartStates.initialStateStandard });
-            EnvironmentRts rtsDummy = new EnvironmentRts(new List<Dictionary<EEnemyInput, double>>() { StartStates.initialStateStandard });
+            EnvironmentRts rtsTest = new EnvironmentRts(new List<Dictionary<EEnemyInput, double>>() { _state });
+            EnvironmentRts rtsDummy = new EnvironmentRts(new List<Dictionary<EEnemyInput, double>>() { _state });
 
             rtsTest.Reset(true, prngTest, true, timeStepLimit);
             rtsDummy.Reset(true, prngDummy, true, timeStepLimit);
@@ -141,6 +168,8 @@ namespace ReinforcementLearning
                 testResult = rtsTest.Step(action, prngTest);
                 dummyResult = rtsTest.Step((int)EEnemyOperation.None, prngDummy);
 
+                Console.WriteLine((EEnemyOperation)action);
+
                 cumulativeRewardTest += testResult.Reward;
                 cumulativeRewardDummy += dummyResult.Reward;
 
@@ -151,7 +180,6 @@ namespace ReinforcementLearning
             Console.WriteLine("[DUMMY] Cumulative Reward: " + cumulativeRewardDummy + "\t Final Reward: " + dummyResult.Reward.ToString());
             Console.WriteLine("[TEST]  Cumulative Reward: " + cumulativeRewardTest + "\t Final Reward: " + testResult.Reward.ToString());
 
-            Console.ReadKey();
         }
 
 

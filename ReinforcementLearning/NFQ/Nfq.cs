@@ -54,6 +54,31 @@ namespace ReinforcementLearning
             episodeExploration = new List<long>();
         }
 
+        public Nfq(NfqArgs _args, NeuralNetwork _nn)
+        {
+            learnRate = _args.LearnRate;
+            gamma = _args.Gamma;
+            batchSize = _args.BatchSize;
+            epochs = _args.Epochs;
+            environment = _args.Environment;
+            seed = _args.Seed;
+            maxMinutes = _args.MaxMinutes;
+            maxEpisodes = _args.MaxEpisodes;
+            explorationStrategy = _args.ExplorationStrategy;
+            trainingStrategy = _args.TrainingStrategy;
+            timeStepLimit = _args.TimeStepLimit;
+
+            prng = seed == -1 ? new Random() : new Random(seed);
+            nS = environment.ObservationSpaceSize;
+            nA = environment.ActionSpaceSize;
+            onlineModel = _nn;
+
+            experiences = new List<Experience<double[]>>();
+            episodeRewards = new List<double>();
+            episodeTimeStep = new List<long>();
+            episodeExploration = new List<long>();
+        }
+
         public NfqResult Train()
         {
             Stopwatch stopwatch = new Stopwatch();
@@ -65,10 +90,14 @@ namespace ReinforcementLearning
 
             for (int episode = 1; !isTrainingFinished; episode++)
             {
-                Dialogue.PrintProgress(episode, (int)maxEpisodes, episode == 1);
+                double episodesFinishedPercent = (float)episode / maxEpisodes;
+                double timeFinishedPercent = stopwatch.Elapsed.TotalMilliseconds / maxTimeSpan.TotalMilliseconds;
+
+                Dialogue.PrintProgress((float)Math.Max(episodesFinishedPercent, timeFinishedPercent), episode == 1);
 
                 double[] state = environment.Reset(timeStepLimit != 0, prng, true, timeStepLimit);
                 bool isTerminal = false;
+                bool nanOccured = false;
                 episodeRewards.Add(0.0f);
                 episodeTimeStep.Add(0);
                 episodeExploration.Add(0);
@@ -83,15 +112,27 @@ namespace ReinforcementLearning
                         continue;
 
                     for (int i = 0; i < epochs; i++)
-                        OptimizeModel();
+                    {
+                        nanOccured = OptimizeModel();
+                        if (nanOccured)
+                            goto nan_happened;
+                    }
+
 
                     experiences.Clear();
                 }
 
+            nan_happened:
                 if (stopwatch.Elapsed >= maxTimeSpan)
                 {
                     isTrainingFinished = true;
                     trainingFinishedReason = "Max training time reached after " + maxTimeSpan.ToString() + ".";
+                }
+
+                if (nanOccured)
+                {
+                    isTrainingFinished = true;
+                    trainingFinishedReason = "Nan occured by learning rate of " + learnRate + " after " + stopwatch.Elapsed.ToString() + ".";
                 }
 
                 //if(episode >= maxEpisodes)
@@ -122,7 +163,7 @@ namespace ReinforcementLearning
             return (stepResult.NextState, stepResult.Done || stepResult.IsTruncated);
         }
 
-        private void OptimizeModel()
+        private bool OptimizeModel()
         {
             List<double[]> states = experiences.Select(x => x.State).ToList();
             List<int> actions = experiences.Select(x => x.Action).ToList();
@@ -147,8 +188,9 @@ namespace ReinforcementLearning
             }
 
             double[,] tdErrors = Commons.SubtractVectorFromMatrixColumns(qSa, statePredictionOutput);
-            onlineModel.Backwards(tdErrors, learnRate); 
+            onlineModel.Backwards(tdErrors, learnRate);
             onlineModel.AdjustWeightsAndBiases();
+            return onlineModel.HasNan();
         }
     }
 }

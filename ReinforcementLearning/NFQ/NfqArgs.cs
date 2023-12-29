@@ -18,7 +18,7 @@
         public NfqArgs(Environment<double[]> _environment, 
             IStrategy _explorationStrategy,
             IStrategy _trainingStrategy,
-            double _learnRate = 0.01f, 
+            double _learnRate = 0.0001f, 
             int _batchSize = 1024, 
             int _epochs = 40, 
             double _gamma = 1.0f, 
