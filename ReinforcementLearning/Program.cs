@@ -4,27 +4,28 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Utilities;
 
 namespace ReinforcementLearning
 {
     internal class Program
     {
         private static string fileNameNoExt = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Model";
-        private static string fileName = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\New.bin";
+        private static string fileName = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\31_12.bin";
         private static string fileNameReward = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Rewards.txt";
 
         private static int batchSize = 512;
-        private static double learnRate = 0.000001f; 
-        private static double maxMinutes = 480f;
+        private static double learnRate = 0.0000001f; 
+        private static double maxMinutes = 360f;
         private static int timeStepLimit = 100;
 
         static void Main(string[] args)
         {
             //RunQLearning();
-            RunNfq();
+            //RunNfq();
             //ExportRewardData(fileNameReward);
             //TestModel(fileName);
-            //TestModelFull(fileName);
+            TestModelFull(fileName);
         }
 
 
@@ -39,6 +40,8 @@ namespace ReinforcementLearning
 
         private static void RunNfq()
         {
+
+            InputManager.ListenInputs();
             
             var initialStates = new List<Dictionary<EEnemyInput, double>>() 
             { 
@@ -116,6 +119,17 @@ namespace ReinforcementLearning
         {
             Console.WriteLine("Standard");
             TestModelState(_filename, StartStates.initialStateStandard);
+            Console.WriteLine("Standard");
+            TestModelState(_filename, StartStates.initialStateStandard);
+            Console.WriteLine("Standard");
+            TestModelState(_filename, StartStates.initialStateStandard);
+            Console.WriteLine("Standard");
+            TestModelState(_filename, StartStates.initialStateStandard);
+            Console.WriteLine("Standard");
+            TestModelState(_filename, StartStates.initialStateStandard);
+            Console.WriteLine("Standard");
+            TestModelState(_filename, StartStates.initialStateStandard);
+
             //Console.WriteLine("Late Game");
             //TestModelState(_filename, StartStates.initialStateLateGame);
             //Console.WriteLine("Late Game Defending");

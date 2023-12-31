@@ -102,6 +102,7 @@
     <Compile Include="QLearnings\QLearningResult.cs" />
     <Compile Include="Utils\DataExporter.cs" />
     <Compile Include="Utils\Dialogue.cs" />
+    <Compile Include="Utils\InputManager.cs" />
     <Compile Include="Utils\Serializer.cs" />
   </ItemGroup>
   <ItemGroup>

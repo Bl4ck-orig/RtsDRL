@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Utilities;
 
 namespace ReinforcementLearning
 {
@@ -108,21 +109,28 @@ namespace ReinforcementLearning
                     state = stepResult.NextState;
                     isTerminal = stepResult.Done;
 
+                    if (InputManager.Interrupt)
+                        goto exit;
+
                     if (experiences.Count < batchSize)
                         continue;
 
                     for (int i = 0; i < epochs; i++)
                     {
                         nanOccured = OptimizeModel();
+
                         if (nanOccured)
-                            goto nan_happened;
+                            goto exit;
+
+                        if (InputManager.Interrupt)
+                            goto exit;
                     }
 
 
                     experiences.Clear();
                 }
 
-            nan_happened:
+            exit:
                 if (stopwatch.Elapsed >= maxTimeSpan)
                 {
                     isTrainingFinished = true;
@@ -135,10 +143,16 @@ namespace ReinforcementLearning
                     trainingFinishedReason = "Nan occured by learning rate of " + learnRate + " after " + stopwatch.Elapsed.ToString() + ".";
                 }
 
+                if (InputManager.Interrupt)
+                {
+                    isTrainingFinished = true;
+                    trainingFinishedReason = "Interrupt after " + stopwatch.Elapsed.ToString() + ".";
+                }
+
                 //if(episode >= maxEpisodes)
                 //{
                 //    isTrainingFinished = true;
-                //    trainingFinishedReason = "Max episodes reached.";
+                //    trainingFinishedReason = "Max episodes reached after " + stopwatch.Elapsed.ToString() + ".";
                 //}
             }
 
