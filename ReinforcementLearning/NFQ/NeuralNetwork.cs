@@ -37,7 +37,9 @@ namespace ReinforcementLearning
         private double[,] changeInHiddenLayerWeights;
         private double[,] changeInHiddenBias;
 
-        public NeuralNetwork(int _inputSize, int _outputSize, int _hiddenLayerSize, int _batchSize, Random _prng)
+        private double gradientClippingThreshold = 0f;
+
+        public NeuralNetwork(int _inputSize, int _outputSize, int _hiddenLayerSize, int _batchSize, double _gradientClippingThreshold, Random _prng)
         {
             inputSize = _inputSize;
             outputSize = _outputSize;
@@ -55,7 +57,7 @@ namespace ReinforcementLearning
             outputWeights = new double[outputSize, hiddenLayerNodesAmount];
             outputBias = new double[outputSize, 1];
 
-            //SetUpRandomNetwork(_prng);
+            gradientClippingThreshold = _gradientClippingThreshold;
 
             SetUpNetworkXavier(_prng);
         }
@@ -363,11 +365,45 @@ namespace ReinforcementLearning
 
         public void AdjustWeightsAndBiases()
         {
+            GradientClipping();
+
             hiddenWeights = hiddenWeights.Subtract(changeInHiddenLayerWeights.Multiply(learningRate));
             hiddenBias = hiddenBias.Subtract(changeInHiddenBias.Multiply(learningRate));
             outputWeights = outputWeights.Subtract(changeInOutputWeights.Multiply(learningRate));
             outputBias = outputBias.Subtract(changeInOutputBias.Multiply(learningRate));
         }
+
+        private void GradientClipping()
+        {
+            int amountOfElements = changeInHiddenLayerWeights.Length + changeInHiddenBias.Length +
+                changeInOutputWeights.Length + changeInOutputBias.Length;
+
+            double gradientMagnitude = 0f;
+
+            gradientMagnitude += Commons.EuclideanSum(changeInHiddenLayerWeights);
+            gradientMagnitude += Commons.EuclideanSum(changeInHiddenBias);
+            gradientMagnitude += Commons.EuclideanSum(changeInOutputWeights);
+            gradientMagnitude += Commons.EuclideanSum(changeInOutputBias);
+
+            gradientMagnitude = Math.Sqrt(gradientMagnitude);
+
+            if (Double.IsNaN(gradientMagnitude))
+                throw new ArgumentOutOfRangeException();
+
+            if (gradientMagnitude < gradientClippingThreshold)
+                return;
+
+            double changeOfEachElement = gradientClippingThreshold / gradientMagnitude;
+
+            changeInHiddenLayerWeights.Multiply(changeOfEachElement);
+            changeInHiddenBias.Multiply(changeOfEachElement);
+            changeInOutputWeights.Multiply(changeOfEachElement);
+            changeInOutputBias.Multiply(changeOfEachElement);
+        }
+
+
+
+
 
         public bool HasNan()
         {
