@@ -49,12 +49,13 @@ namespace ReinforcementLearning
             nS = environment.ObservationSpaceSize;
             nA = environment.ActionSpaceSize;
 
-            onlineModel = new NeuralNetwork(nS, 
-                _args.HiddenLayerNodesAmount, 
+            onlineModel = new NeuralNetwork(nS,
+                _args.HiddenLayerNodesAmount,
                 _args.HiddenLayersAmount,
                 nA,
                 batchSize,
-                _args.GradientClippingThreshold, 
+                _args.GradientClippingThreshold,
+                _args.NormalizedGradientClipping,
                 prng);
 
             experiences = new List<Experience<double[]>>();

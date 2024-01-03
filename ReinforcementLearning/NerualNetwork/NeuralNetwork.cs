@@ -7,14 +7,14 @@ namespace ReinforcementLearning
         private int inputSize;
         private int outputSize;
         private int batchSize;
-
+        private bool normalizedClipping;
         private int hiddenLayerNodesAmount;
 
         private InputLayer inputLayer;
-        private ReluLayer[] hiddenLayer;
+        private ReluLayer[] hiddenLayers;
         private OutputLayer outputLayer;
 
-        private double gradientClippingThreshold = 0f;
+        private double gradientClippingThreshold;
 
         public NeuralNetwork(int _inputSize, 
             int _hiddenLayerNodesAmount, 
@@ -22,25 +22,27 @@ namespace ReinforcementLearning
             int _outputSize,
             int _batchSize,
             double _gradientClippingThreshold, 
+            bool _normalizedClipping,
             Random _prng)
         {
             inputSize = _inputSize;
             outputSize = _outputSize;
             batchSize = _batchSize;
+            normalizedClipping = _normalizedClipping;
 
             hiddenLayerNodesAmount = _hiddenLayerNodesAmount;
 
             inputLayer = new InputLayer(inputSize, _batchSize);
             
-            hiddenLayer = new ReluLayer[_hiddenLayersAmount];
-            hiddenLayer[0] = new ReluLayer(inputLayer, hiddenLayerNodesAmount, _batchSize);
+            hiddenLayers = new ReluLayer[_hiddenLayersAmount];
+            hiddenLayers[0] = new ReluLayer(inputLayer, hiddenLayerNodesAmount, _batchSize);
             for (int i = 1; i < _hiddenLayersAmount; i++)
-                hiddenLayer[i] = new ReluLayer(hiddenLayer[i - 1], hiddenLayerNodesAmount, _batchSize);
+                hiddenLayers[i] = new ReluLayer(hiddenLayers[i - 1], hiddenLayerNodesAmount, _batchSize);
 
-            outputLayer = new OutputLayer(hiddenLayer[hiddenLayer.Length - 1], outputSize, _batchSize);
+            outputLayer = new OutputLayer(hiddenLayers[hiddenLayers.Length - 1], outputSize, _batchSize);
 
             inputLayer.InitializeXavier(_prng);
-            foreach (var hiddenLayer in hiddenLayer)
+            foreach (var hiddenLayer in hiddenLayers)
                 hiddenLayer.InitializeXavier(_prng);
             outputLayer.InitializeXavier(_prng);
 
@@ -54,7 +56,7 @@ namespace ReinforcementLearning
              batchSize = _trainingResult.batchSize;
              hiddenLayerNodesAmount = _trainingResult.hiddenLayerNodesAmount;
              inputLayer = _trainingResult.inputLayer;
-             hiddenLayer = _trainingResult.hiddenLayer;
+             hiddenLayers = _trainingResult.hiddenLayer;
              outputLayer = _trainingResult.outputLayer;
              gradientClippingThreshold = _trainingResult.gradientClippingThreshold;
         }
@@ -62,7 +64,7 @@ namespace ReinforcementLearning
         #region Forward Propagation -----------------------------------------------------------------
         public void ApplyForwardPropagation()
         {
-            foreach (var layer in hiddenLayer)
+            foreach (var layer in hiddenLayers)
                 layer.ForwardPropagate();
             outputLayer.ForwardPropagate();
         }
@@ -96,10 +98,10 @@ namespace ReinforcementLearning
         {
             outputLayer.BackwardPropagate(_errorMatrix);
 
-            hiddenLayer[hiddenLayer.Length - 1].BackwardPropagate(outputLayer);
+            hiddenLayers[hiddenLayers.Length - 1].BackwardPropagate(outputLayer);
             
-            for(int i = hiddenLayer.Length - 2; i >= 0; i--)
-                hiddenLayer[i].BackwardPropagate(hiddenLayer[i + 1]);
+            for(int i = hiddenLayers.Length - 2; i >= 0; i--)
+                hiddenLayers[i].BackwardPropagate(hiddenLayers[i + 1]);
         }
 
         public double AdjustWeightsAndBiases(double _learningRate)
@@ -108,7 +110,7 @@ namespace ReinforcementLearning
 
             outputLayer.AdjustWeightsAndBiases(_learningRate);
 
-            foreach (var hiddenLayer in hiddenLayer)
+            foreach (var hiddenLayer in hiddenLayers)
                 hiddenLayer.AdjustWeightsAndBiases(_learningRate);
 
             return originalMagnitude;
@@ -116,19 +118,7 @@ namespace ReinforcementLearning
 
         private double GradientClipping()
         {
-            int amountOfElements = outputLayer.ChangeInHiddenLayerWeightsLength();
-            amountOfElements += outputLayer.ChangeInHiddenLayerBiasLength();
-
-            foreach (var hiddenLayer in hiddenLayer)
-            {
-                amountOfElements += hiddenLayer.ChangeInHiddenLayerWeightsLength();
-                amountOfElements += hiddenLayer.ChangeInHiddenLayerBiasLength();
-            }
-
-            double gradientMagnitude = outputLayer.EuclideanSumOfWeightsAndBiases();
-
-            foreach (var hiddenLayer in hiddenLayer)
-                gradientMagnitude += hiddenLayer.EuclideanSumOfWeightsAndBiases();
+            double gradientMagnitude = GradientMagnitude();
 
             if (Double.IsNaN(gradientMagnitude))
                 throw new ArgumentOutOfRangeException();
@@ -136,14 +126,49 @@ namespace ReinforcementLearning
             if (gradientMagnitude < gradientClippingThreshold)
                 return gradientMagnitude;
 
-            double changeOfEachElement = gradientClippingThreshold / gradientMagnitude;
+            if (normalizedClipping)
+                NormalizedGradientClipping(gradientMagnitude);
+            else
+                ValueGradientClipping();
+
+            return gradientMagnitude;
+        }
+
+        private double GradientMagnitude()
+        {
+            int amountOfElements = outputLayer.ChangeInHiddenLayerWeightsLength();
+            amountOfElements += outputLayer.ChangeInHiddenLayerBiasLength();
+
+            foreach (var hiddenLayer in hiddenLayers)
+            {
+                amountOfElements += hiddenLayer.ChangeInHiddenLayerWeightsLength();
+                amountOfElements += hiddenLayer.ChangeInHiddenLayerBiasLength();
+            }
+
+            double gradientMagnitude = outputLayer.EuclideanSumOfWeightsAndBiases();
+
+            foreach (var hiddenLayer in hiddenLayers)
+                gradientMagnitude += hiddenLayer.EuclideanSumOfWeightsAndBiases();
+
+            return Math.Sqrt(gradientMagnitude);
+        }
+
+        private void NormalizedGradientClipping(double _gradientMagnitude)
+        {
+            double changeOfEachElement = gradientClippingThreshold / _gradientMagnitude;
 
             outputLayer.ScaleChangeInWeightsAndBias(changeOfEachElement);
 
-            foreach (var hiddenLayer in hiddenLayer)
+            foreach (var hiddenLayer in hiddenLayers)
                 hiddenLayer.ScaleChangeInWeightsAndBias(changeOfEachElement);
+        }
 
-            return gradientMagnitude;
+        private void ValueGradientClipping()
+        {
+            foreach(var hiddenlayer in hiddenLayers)
+                hiddenlayer.ClipWeightsAndBiases(Math.Sqrt(gradientClippingThreshold));
+
+            outputLayer.ClipWeightsAndBiases(Math.Sqrt(gradientClippingThreshold));
         }
 
         public NeuralNetworkValues GetNeuralNetworkValues()
@@ -151,9 +176,10 @@ namespace ReinforcementLearning
             return new NeuralNetworkValues(inputSize,
                 outputSize,
                 batchSize,
+                normalizedClipping,
                 hiddenLayerNodesAmount,
                 inputLayer,
-                hiddenLayer,
+                hiddenLayers,
                 outputLayer,
                 gradientClippingThreshold);
 

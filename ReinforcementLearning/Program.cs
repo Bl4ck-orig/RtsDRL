@@ -11,23 +11,24 @@ namespace ReinforcementLearning
     internal class Program
     {
         private static string fileNameNoExt = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Model";
-        private static string fileName = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Model_0_2024_01_03-05_08.bin";
+        private static string fileName = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Model_0_2024_01_03-11_17.bin";
         private static string fileNameReward = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Rewards.txt";
 
-        private static int batchSize = 512;
-        private static double learnRate = 0.00001f; 
+        private static int batchSize = 1024;
+        private static double learnRate = 0.00001f;
         private static double maxMinutes = 360f;
         private static int timeStepLimit = 100;
+        private static double gradientClippingThreshold = 50f;
+        private static bool normalizedGradientClipping = true;
 
         static void Main(string[] args)
         {
             //RunQLearning();
-            //RunNfq();
+            RunNfq();
             //ExportRewardData(fileNameReward);
             //TestModel(fileName);
-            TestModelFull(fileName);
+            //TestModelFull(fileName);
         }
-
 
         private static void RunQLearning()
         {
@@ -38,7 +39,7 @@ namespace ReinforcementLearning
             Console.ReadLine();
         }
 
-        private static void RunNfq()
+        private static void RunNfq(NeuralNetwork _nn = null)
         {
             InputManager.ListenInputs();
             
@@ -67,9 +68,11 @@ namespace ReinforcementLearning
                 _learnRate: learnRate,
                 _batchSize: batchSize,
                 _maxMinutes: maxMinutes,
-                _timeStepLimit: timeStepLimit);
+                _timeStepLimit: timeStepLimit,
+                _gradientClippingThreshold: gradientClippingThreshold,
+                _normalizedGradientClipping: normalizedGradientClipping);
 
-            Nfq nfq = new Nfq(nfqArgs);
+            Nfq nfq = _nn == null ? new Nfq(nfqArgs) : new Nfq(nfqArgs, _nn);
             NfqResult result = nfq.Train();
 
             string file = fileNameNoExt + "_0_" + DateTime.Now.ToString("yyyy_MM_dd-HH_mm") + ".bin";
@@ -116,7 +119,7 @@ namespace ReinforcementLearning
 
         private static void TestModelFull(string _filename)
         {
-            for(int i = 0; i < 5; i++)
+            for(int i = 0; i < 1; i++)
             {
                 TestModelState(_filename, i, StartStates.initialStateStandard);
             }
@@ -173,7 +176,7 @@ namespace ReinforcementLearning
                 testResult = rtsTest.Step((int)EEnemyOperation.None);
                 dummyResult = rtsDummy.Step(action);
 
-                //Console.WriteLine((EEnemyOperation)action);
+                Console.WriteLine((EEnemyOperation)action);
 
                 cumulativeRewardTest += testResult.Reward;
                 cumulativeRewardDummy += dummyResult.Reward;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Xml.Linq;
 
 namespace ReinforcementLearning
 {
@@ -109,6 +110,32 @@ namespace ReinforcementLearning
         {
             weights = weights.Subtract(changeInWeights.Multiply(_learningRate));
             bias = bias.Subtract(changeInBias.Multiply(_learningRate));
+        }
+
+        public void ClipWeightsAndBiases(double _maxThreshold)
+        {
+            for (int x = 0; x < weights.GetLength(0); x++)
+            {
+                for(int y = 0; y < weights.GetLength(1); y++)
+                {
+                    double weightValue = weights[x, y];
+
+                    if (weightValue > _maxThreshold)
+                        weights[x, y] = _maxThreshold;
+                    if(weightValue < -_maxThreshold)
+                        weights[x, y] = -_maxThreshold;
+                }
+            }
+
+            for (int x = 0; x < weights.GetLength(0); x++)
+            {
+                double biasValue = bias[x, 0];
+
+                if (biasValue > _maxThreshold)
+                    bias[x, 0] = _maxThreshold;
+                if (biasValue < -_maxThreshold)
+                    bias[x, 0] = -_maxThreshold;
+            }
         }
         #endregion -----------------------------------------------------------------
     }

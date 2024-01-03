@@ -6,6 +6,7 @@
         public int inputSize;
         public int outputSize;
         public int batchSize;
+        public bool normalizedClipping;
         public int hiddenLayerNodesAmount;
         public InputLayer inputLayer;
         public ReluLayer[] hiddenLayer;
@@ -15,6 +16,7 @@
         public NeuralNetworkValues(int inputSize,
             int outputSize,
             int batchSize,
+            bool normalizedClipping,
             int hiddenLayerNodesAmount,
             InputLayer inputLayer,
             ReluLayer[] hiddenLayer,
@@ -24,6 +26,7 @@
             this.inputSize = inputSize;
             this.outputSize = outputSize;
             this.batchSize = batchSize;
+            this.normalizedClipping = normalizedClipping;
             this.hiddenLayerNodesAmount = hiddenLayerNodesAmount;
             this.inputLayer = inputLayer;
             this.hiddenLayer = hiddenLayer;
