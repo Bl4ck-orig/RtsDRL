@@ -82,6 +82,10 @@
     <Compile Include="Environment\EnvironemntFrozenLake.cs" />
     <Compile Include="Environment\Environment.cs" />
     <Compile Include="Environment\StepResult.cs" />
+    <Compile Include="NerualNetwork\InputLayer.cs" />
+    <Compile Include="NerualNetwork\NeuralLayer.cs" />
+    <Compile Include="NerualNetwork\OutputLayer.cs" />
+    <Compile Include="NerualNetwork\ReluLayer.cs" />
     <Compile Include="NeuralNetworkValues.cs" />
     <Compile Include="TrainingResult.cs" />
     <Compile Include="Exploration\Exploration.cs" />
@@ -89,7 +93,7 @@
     <Compile Include="NFQ\Experience.cs" />
     <Compile Include="NFQ\GreedyStrategy.cs" />
     <Compile Include="NFQ\IStrategy.cs" />
-    <Compile Include="NFQ\NeuralNetwork.cs" />
+    <Compile Include="NerualNetwork\NeuralNetwork.cs" />
     <Compile Include="NFQ\IFcq.cs" />
     <Compile Include="NFQ\Nfq.cs" />
     <Compile Include="NFQ\NfqArgs.cs" />
@@ -109,5 +113,6 @@
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -11,11 +11,11 @@ namespace ReinforcementLearning
     internal class Program
     {
         private static string fileNameNoExt = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Model";
-        private static string fileName = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\31_12.bin";
+        private static string fileName = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Model_0_2024_01_03-05_08.bin";
         private static string fileNameReward = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Rewards.txt";
 
         private static int batchSize = 512;
-        private static double learnRate = 0.0000001f; 
+        private static double learnRate = 0.00001f; 
         private static double maxMinutes = 360f;
         private static int timeStepLimit = 100;
 
@@ -40,20 +40,19 @@ namespace ReinforcementLearning
 
         private static void RunNfq()
         {
-
             InputManager.ListenInputs();
             
             var initialStates = new List<Dictionary<EEnemyInput, double>>() 
             { 
                 StartStates.initialStateStandard,
-                //StartStates.initialStateLateGame,
-                //StartStates.initialStateLateGameDefending,
-                //StartStates.initialStateLateGameAttacking,
-                //StartStates.initialStateMidGame,
-                //StartStates.shouldTryDefend,
-                //StartStates.shouldAttack,
-                //StartStates.shouldEat,
-                //StartStates.shouldTryBalanceTribes,
+                StartStates.initialStateLateGame,
+                StartStates.initialStateLateGameDefending,
+                StartStates.initialStateLateGameAttacking,
+                StartStates.initialStateMidGame,
+                StartStates.shouldTryDefend,
+                StartStates.shouldAttack,
+                StartStates.shouldEat,
+                StartStates.shouldTryBalanceTribes,
             };
 
             Random prng = new Random();
@@ -138,6 +137,7 @@ namespace ReinforcementLearning
             //TestModelState(_filename, StartStates.shouldEat);
             //Console.WriteLine("Should balance tribes");
             //TestModelState(_filename, StartStates.shouldTryBalanceTribes);
+
             Console.ReadKey();
         }
 

@@ -29,6 +29,7 @@ namespace ReinforcementLearning
         private List<double> episodeRewards;
         private List<long> episodeTimeStep;
         private List<long> episodeExploration;
+        private List<double> gradientMagnitudes;
 
         public Nfq(NfqArgs _args)
         {
@@ -47,12 +48,20 @@ namespace ReinforcementLearning
             prng = seed == -1 ? new Random() : new Random(seed);
             nS = environment.ObservationSpaceSize;
             nA = environment.ActionSpaceSize;
-            onlineModel = new NeuralNetwork(nS, nA, _args.HiddenLayerSize, batchSize, prng);
+
+            onlineModel = new NeuralNetwork(nS, 
+                _args.HiddenLayerNodesAmount, 
+                _args.HiddenLayersAmount,
+                nA,
+                batchSize,
+                _args.GradientClippingThreshold, 
+                prng);
 
             experiences = new List<Experience<double[]>>();
             episodeRewards = new List<double>();
             episodeTimeStep = new List<long>();
             episodeExploration = new List<long>();
+            gradientMagnitudes = new List<double>();
         }
 
         public Nfq(NfqArgs _args, NeuralNetwork _nn)
@@ -78,6 +87,7 @@ namespace ReinforcementLearning
             episodeRewards = new List<double>();
             episodeTimeStep = new List<long>();
             episodeExploration = new List<long>();
+            gradientMagnitudes = new List<double>();
         }
 
         public NfqResult Train()
@@ -117,15 +127,11 @@ namespace ReinforcementLearning
 
                     for (int i = 0; i < epochs; i++)
                     {
-                        nanOccured = OptimizeModel();
-
-                        if (nanOccured)
-                            goto exit;
+                        OptimizeModel();
 
                         if (InputManager.Interrupt)
                             goto exit;
                     }
-
 
                     experiences.Clear();
                 }
@@ -156,7 +162,13 @@ namespace ReinforcementLearning
                 //}
             }
 
-            return new NfqResult(onlineModel, trainingFinishedReason, episodeRewards, episodeTimeStep, episodeExploration);
+            return new NfqResult(onlineModel,
+                learnRate,
+                trainingFinishedReason, 
+                episodeRewards,
+                episodeTimeStep, 
+                episodeExploration, 
+                gradientMagnitudes);
         }
 
         private (double[] NextState, bool Done) InteractionStep(double[] _state, IFcq _model, Environment<double[]> _environment)
@@ -177,7 +189,7 @@ namespace ReinforcementLearning
             return (stepResult.NextState, stepResult.Done || stepResult.IsTruncated);
         }
 
-        private bool OptimizeModel()
+        private void OptimizeModel()
         {
             List<double[]> states = experiences.Select(x => x.State).ToList();
             List<int> actions = experiences.Select(x => x.Action).ToList();
@@ -202,9 +214,14 @@ namespace ReinforcementLearning
             }
 
             double[,] tdErrors = Commons.SubtractVectorFromMatrixColumns(qSa, statePredictionOutput);
-            onlineModel.Backwards(tdErrors, learnRate);
-            onlineModel.AdjustWeightsAndBiases();
-            return onlineModel.HasNan();
+            onlineModel.Backwards(tdErrors);
+            double gradientMagnitude = onlineModel.AdjustWeightsAndBiases(learnRate);
+
+            try
+            {
+                gradientMagnitudes.Add(gradientMagnitude);
+            }
+            catch (Exception) { }
         }
     }
 }

@@ -12,20 +12,24 @@
         public readonly IStrategy ExplorationStrategy;
         public readonly IStrategy TrainingStrategy;
         public readonly int TimeStepLimit;
-        public readonly int HiddenLayerSize;
+        public readonly int HiddenLayerNodesAmount;
+        public readonly int HiddenLayersAmount;
+        public readonly double GradientClippingThreshold;
         public readonly int Seed;
 
-        public NfqArgs(Environment<double[]> _environment, 
+        public NfqArgs(Environment<double[]> _environment,
             IStrategy _explorationStrategy,
             IStrategy _trainingStrategy,
-            double _learnRate = 0.0001f, 
-            int _batchSize = 1024, 
-            int _epochs = 40, 
-            double _gamma = 1.0f, 
-            double _maxMinutes = 600f, 
+            double _learnRate = 0.0001f,
+            int _batchSize = 1024,
+            int _epochs = 40,
+            double _gamma = 1.0f,
+            double _maxMinutes = 600f,
             long _maxEpisodes = 10000,
             int _timeStepLimit = 200,
-            int _hiddenLayerSize = 512,
+            int _hiddenLayerNodesAmount = 100,
+            int _hiddenLayersAmount = 3,
+            double _gradientClippingThreshold = 10f,
             int _seed = -1)
         {
             LearnRate = _learnRate;
@@ -38,7 +42,9 @@
             ExplorationStrategy = _explorationStrategy;
             TrainingStrategy = _trainingStrategy;
             TimeStepLimit = _timeStepLimit;
-            HiddenLayerSize = _hiddenLayerSize;
+            HiddenLayerNodesAmount = _hiddenLayerNodesAmount;
+            HiddenLayersAmount = _hiddenLayersAmount;
+            GradientClippingThreshold = _gradientClippingThreshold;
             Seed = _seed;
         }
     }

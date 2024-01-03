@@ -8,11 +8,9 @@
 
         double[] GetPrediction(double[] _inputs);
 
-        void Backwards(double[,] _errorMatrix, double _learningRate);
+        void Backwards(double[,] _errorMatrix);
 
-        void AdjustWeightsAndBiases();
-
-        bool HasNan();
+        double AdjustWeightsAndBiases(double _learningRate);
 
         NeuralNetworkValues GetNeuralNetworkValues();
     }
