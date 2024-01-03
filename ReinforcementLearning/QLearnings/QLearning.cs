@@ -27,12 +27,12 @@ namespace ReinforcementLearning.Training
             {
                 Dialogue.PrintProgress(e, _args.NEpisodes, e == 0);
 
-                int state = _args.Environment.Reset(false, prng, false);
+                int state = _args.Environment.Reset(false, false, prng);
                 bool done = false;
                 while (!done)
                 {
                     int action = SelectAction(prng, state, qTable, epsilons[e]);
-                    StepResult<int> stepResult = _args.Environment.Step(action, prng);
+                    StepResult<int> stepResult = _args.Environment.Step(action);
                     done = stepResult.Done;
                     double tdTarget = stepResult.Reward + _args.Gamma * Commons.GetMaxValueOfRow(qTable, stepResult.NextState);
                     if(done)

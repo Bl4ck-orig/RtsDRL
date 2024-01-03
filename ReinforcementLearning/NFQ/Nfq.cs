@@ -96,7 +96,7 @@ namespace ReinforcementLearning
 
                 Dialogue.PrintProgress((float)Math.Max(episodesFinishedPercent, timeFinishedPercent), episode == 1);
 
-                double[] state = environment.Reset(timeStepLimit != 0, prng, true, timeStepLimit);
+                double[] state = environment.Reset(timeStepLimit != 0, true, prng, timeStepLimit);
                 bool isTerminal = false;
                 bool nanOccured = false;
                 episodeRewards.Add(0.0f);
@@ -162,7 +162,7 @@ namespace ReinforcementLearning
         private (double[] NextState, bool Done) InteractionStep(double[] _state, IFcq _model, Environment<double[]> _environment)
         {
             int action = trainingStrategy.SelectAction(_state, _model, prng);
-            StepResult<double[]> stepResult = _environment.Step(action, prng);
+            StepResult<double[]> stepResult = _environment.Step(action);
             bool isFailure = stepResult.Done && !stepResult.IsTruncated;
             Experience<double[]> experience = new Experience<double[]>(_state,
                 action,

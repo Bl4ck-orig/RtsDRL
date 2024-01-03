@@ -103,7 +103,7 @@ namespace ReinforcementLearning
         }
 
 
-        protected override (double[] NextState, double Reward, bool IsTerminal) Act(int _action, Random _prng)
+        protected override (double[] NextState, double Reward, bool IsTerminal) Act(int _action)
         {
             double currentReward = GetStateReward(State);
 
@@ -112,12 +112,13 @@ namespace ReinforcementLearning
             if (enemyOperations[action].IsSimplifiedOperationPossible(this))
                 enemyOperations[action].ApplySimplifiedOperation(this);
 
-            Tick(_prng);
+            Tick(prng);
 
             bool defeat = Variables[EEnemyInput.TotalGhouls].Value == 0;
             bool victory = Variables[EEnemyInput.TribesAggresive].Value == 0;
 
             double deltaReward = GetStateReward(State) - currentReward;
+
             if (defeat)
                 deltaReward = DEFEAT_REWARD;
             if (victory)

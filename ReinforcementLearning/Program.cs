@@ -117,18 +117,10 @@ namespace ReinforcementLearning
 
         private static void TestModelFull(string _filename)
         {
-            Console.WriteLine("Standard");
-            TestModelState(_filename, StartStates.initialStateStandard);
-            Console.WriteLine("Standard");
-            TestModelState(_filename, StartStates.initialStateStandard);
-            Console.WriteLine("Standard");
-            TestModelState(_filename, StartStates.initialStateStandard);
-            Console.WriteLine("Standard");
-            TestModelState(_filename, StartStates.initialStateStandard);
-            Console.WriteLine("Standard");
-            TestModelState(_filename, StartStates.initialStateStandard);
-            Console.WriteLine("Standard");
-            TestModelState(_filename, StartStates.initialStateStandard);
+            for(int i = 0; i < 5; i++)
+            {
+                TestModelState(_filename, i, StartStates.initialStateStandard);
+            }
 
             //Console.WriteLine("Late Game");
             //TestModelState(_filename, StartStates.initialStateLateGame);
@@ -150,7 +142,7 @@ namespace ReinforcementLearning
         }
 
 
-        private static void TestModelState(string _filename, Dictionary<EEnemyInput, double> _state)
+        private static void TestModelState(string _filename, int _seed, Dictionary<EEnemyInput, double> _state)
         {
             if (!File.Exists(_filename))
                 throw new ArgumentException("File name not existant");
@@ -160,14 +152,13 @@ namespace ReinforcementLearning
             NeuralNetwork nn = new NeuralNetwork(trainingResult);
 
             Random prngTest = new Random();
-            Random prngDummy = new Random();
             GreedyStrategy greedy = new GreedyStrategy();
 
             EnvironmentRts rtsTest = new EnvironmentRts(new List<Dictionary<EEnemyInput, double>>() { _state });
             EnvironmentRts rtsDummy = new EnvironmentRts(new List<Dictionary<EEnemyInput, double>>() { _state });
 
-            rtsTest.Reset(true, prngTest, true, timeStepLimit);
-            rtsDummy.Reset(true, prngDummy, true, timeStepLimit);
+            rtsTest.Reset(true, true, _seed, timeStepLimit);
+            rtsDummy.Reset(true, true, _seed, timeStepLimit);
 
             double cumulativeRewardTest = 0f;
             double cumulativeRewardDummy = 0f;
@@ -179,10 +170,10 @@ namespace ReinforcementLearning
             while (!done)
             {
                 var action = greedy.SelectAction(rtsTest.State, nn, prngTest);
-                testResult = rtsTest.Step(action, prngTest);
-                dummyResult = rtsTest.Step((int)EEnemyOperation.None, prngDummy);
+                testResult = rtsTest.Step((int)EEnemyOperation.None);
+                dummyResult = rtsDummy.Step(action);
 
-                Console.WriteLine((EEnemyOperation)action);
+                //Console.WriteLine((EEnemyOperation)action);
 
                 cumulativeRewardTest += testResult.Reward;
                 cumulativeRewardDummy += dummyResult.Reward;
