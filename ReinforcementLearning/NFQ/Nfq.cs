@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Utilities;
 
 namespace ReinforcementLearning
 {
@@ -28,10 +29,12 @@ namespace ReinforcementLearning
         private List<double> episodeRewards;
         private List<long> episodeTimeStep;
         private List<long> episodeExploration;
+        private List<double> gradientMagnitudes;
 
         public Nfq(NfqArgs _args)
         {
             learnRate = _args.LearnRate;
+            gamma = _args.Gamma;
             batchSize = _args.BatchSize;
             epochs = _args.Epochs;
             environment = _args.Environment;
@@ -45,12 +48,47 @@ namespace ReinforcementLearning
             prng = seed == -1 ? new Random() : new Random(seed);
             nS = environment.ObservationSpaceSize;
             nA = environment.ActionSpaceSize;
-            onlineModel = new NeuralNetwork(nS, nA, _args.HiddenLayerSize, batchSize, prng);
+
+            onlineModel = new NeuralNetwork(nS,
+                _args.HiddenLayerNodesAmount,
+                _args.HiddenLayersAmount,
+                nA,
+                batchSize,
+                _args.GradientClippingThreshold,
+                _args.NormalizedGradientClipping,
+                prng);
 
             experiences = new List<Experience<double[]>>();
             episodeRewards = new List<double>();
             episodeTimeStep = new List<long>();
             episodeExploration = new List<long>();
+            gradientMagnitudes = new List<double>();
+        }
+
+        public Nfq(NfqArgs _args, NeuralNetwork _nn)
+        {
+            learnRate = _args.LearnRate;
+            gamma = _args.Gamma;
+            batchSize = _args.BatchSize;
+            epochs = _args.Epochs;
+            environment = _args.Environment;
+            seed = _args.Seed;
+            maxMinutes = _args.MaxMinutes;
+            maxEpisodes = _args.MaxEpisodes;
+            explorationStrategy = _args.ExplorationStrategy;
+            trainingStrategy = _args.TrainingStrategy;
+            timeStepLimit = _args.TimeStepLimit;
+
+            prng = seed == -1 ? new Random() : new Random(seed);
+            nS = environment.ObservationSpaceSize;
+            nA = environment.ActionSpaceSize;
+            onlineModel = _nn;
+
+            experiences = new List<Experience<double[]>>();
+            episodeRewards = new List<double>();
+            episodeTimeStep = new List<long>();
+            episodeExploration = new List<long>();
+            gradientMagnitudes = new List<double>();
         }
 
         public NfqResult Train()
@@ -64,10 +102,14 @@ namespace ReinforcementLearning
 
             for (int episode = 1; !isTrainingFinished; episode++)
             {
-                Dialogue.PrintProgress(episode, (int)maxEpisodes, episode == 1);
+                double episodesFinishedPercent = (float)episode / maxEpisodes;
+                double timeFinishedPercent = stopwatch.Elapsed.TotalMilliseconds / maxTimeSpan.TotalMilliseconds;
 
-                double[] state = environment.Reset(timeStepLimit != 0, prng, timeStepLimit);
+                Dialogue.PrintProgress((float)Math.Max(episodesFinishedPercent, timeFinishedPercent), episode == 1);
+
+                double[] state = environment.Reset(timeStepLimit != 0, true, prng, timeStepLimit);
                 bool isTerminal = false;
+                bool nanOccured = false;
                 episodeRewards.Add(0.0f);
                 episodeTimeStep.Add(0);
                 episodeExploration.Add(0);
@@ -78,35 +120,62 @@ namespace ReinforcementLearning
                     state = stepResult.NextState;
                     isTerminal = stepResult.Done;
 
+                    if (InputManager.Interrupt)
+                        goto exit;
+
                     if (experiences.Count < batchSize)
                         continue;
 
                     for (int i = 0; i < epochs; i++)
+                    {
                         OptimizeModel();
+
+                        if (InputManager.Interrupt)
+                            goto exit;
+                    }
 
                     experiences.Clear();
                 }
 
+            exit:
                 if (stopwatch.Elapsed >= maxTimeSpan)
                 {
                     isTrainingFinished = true;
                     trainingFinishedReason = "Max training time reached after " + maxTimeSpan.ToString() + ".";
                 }
 
+                if (nanOccured)
+                {
+                    isTrainingFinished = true;
+                    trainingFinishedReason = "Nan occured by learning rate of " + learnRate + " after " + stopwatch.Elapsed.ToString() + ".";
+                }
+
+                if (InputManager.Interrupt)
+                {
+                    isTrainingFinished = true;
+                    trainingFinishedReason = "Interrupt after " + stopwatch.Elapsed.ToString() + ".";
+                }
+
                 //if(episode >= maxEpisodes)
                 //{
                 //    isTrainingFinished = true;
-                //    trainingFinishedReason = "Max episodes reached.";
+                //    trainingFinishedReason = "Max episodes reached after " + stopwatch.Elapsed.ToString() + ".";
                 //}
             }
 
-            return new NfqResult(onlineModel, trainingFinishedReason, episodeRewards, episodeTimeStep, episodeExploration);
+            return new NfqResult(onlineModel,
+                learnRate,
+                trainingFinishedReason, 
+                episodeRewards,
+                episodeTimeStep, 
+                episodeExploration, 
+                gradientMagnitudes);
         }
 
         private (double[] NextState, bool Done) InteractionStep(double[] _state, IFcq _model, Environment<double[]> _environment)
         {
             int action = trainingStrategy.SelectAction(_state, _model, prng);
-            StepResult<double[]> stepResult = _environment.Step(action, prng);
+            StepResult<double[]> stepResult = _environment.Step(action);
             bool isFailure = stepResult.Done && !stepResult.IsTruncated;
             Experience<double[]> experience = new Experience<double[]>(_state,
                 action,
@@ -130,8 +199,8 @@ namespace ReinforcementLearning
             List<double> isTerminals = experiences.Select(x => x.IsFailure).ToList();
 
             double[,] nextStateFeatureMatrix = Commons.ToMatrix(nextStates).Transpose(); 
-            double[] highestRewartOutputIndex = onlineModel.GetHighestRewardOutputIndex(nextStateFeatureMatrix);
-            double[,] maxAQSp = Commons.Unsqueeze(highestRewartOutputIndex); 
+            double[] highestRewardOutputIndex = onlineModel.GetHighestRewardVector(nextStateFeatureMatrix);
+            double[,] maxAQSp = Commons.Unsqueeze(highestRewardOutputIndex); 
             double[] oneMinusTerminals = Commons.SubtractFromValue(1.0f, isTerminals).ToArray();
             double[,] targetQS_a = Commons.MultiplyMatrixByArray(maxAQSp, oneMinusTerminals);
             double[,] targetQS_b = Commons.AddMatrixBy(targetQS_a, gamma);
@@ -146,8 +215,14 @@ namespace ReinforcementLearning
             }
 
             double[,] tdErrors = Commons.SubtractVectorFromMatrixColumns(qSa, statePredictionOutput);
-            onlineModel.Backwards(tdErrors, learnRate); 
-            onlineModel.AdjustWeightsAndBiases();
+            onlineModel.Backwards(tdErrors);
+            double gradientMagnitude = onlineModel.AdjustWeightsAndBiases(learnRate);
+
+            try
+            {
+                gradientMagnitudes.Add(gradientMagnitude);
+            }
+            catch (Exception) { }
         }
     }
 }

@@ -8,65 +8,44 @@ namespace ReinforcementLearning
         public int inputSize;
         public int outputSize;
         public int batchSize;
-        public double[,] hiddenWeights;
-        public double[,] hiddenBias;
-        public double[,] outputWeights;
-        public double[,] outputBias;
+        public bool normalizedClipping;
         public int hiddenLayerNodesAmount;
-        public double learningRate;
-        public double[,] inputLayer;
-        public double[,] hiddenLayer;
-        public double[,] hiddenLayerZ;
-        public double[,] outputLayer;
-        public double[,] outputLayerZ;
-        public double[,] errorMatrix;
-        public double oneOverBatchSize;
-        public double[,] changeInOutputLayerError;
-        public double[,] changeInOutputWeights;
-        public double[,] changeInOutputBias;
-        public double[,] changeInHiddenLayerError;
-        public double[,] changeInHiddenLayerWeights;
-        public double[,] changeInHiddenBias;
+        public double learnRate;
+        public InputLayer inputLayer;
+        public ReluLayer[] hiddenLayer;
+        public OutputLayer outputLayer;
+        public double gradientClippingThreshold;
+        public string endReason;
         public double[] episodeRewards;
         public long[] episodeTimeStep;
         public long[] episodeExploration;
-        public string EndReason;
+        public double[] gradientMagnitudes;
 
         public TrainingResult(NeuralNetworkValues neuralNetworkValues, 
+            double learnRate,
             string endReason,
             double[] episodeRewards,
             long[] episodeTimeStep,
-            long[] episodeExploration)
+            long[] episodeExploration,
+            double[] gradientMagnitudes)
         {
             inputSize = neuralNetworkValues.inputSize;
             outputSize = neuralNetworkValues.outputSize;
             batchSize = neuralNetworkValues.batchSize;
-            hiddenWeights = neuralNetworkValues.hiddenWeights;
-            hiddenBias = neuralNetworkValues.hiddenBias;
-            outputWeights = neuralNetworkValues.outputWeights;
-            outputBias = neuralNetworkValues.outputBias;
+            normalizedClipping = neuralNetworkValues.normalizedClipping;
             hiddenLayerNodesAmount = neuralNetworkValues.hiddenLayerNodesAmount;
-            learningRate = neuralNetworkValues.learningRate;
             inputLayer = neuralNetworkValues.inputLayer;
             hiddenLayer = neuralNetworkValues.hiddenLayer;
-            hiddenLayerZ = neuralNetworkValues.hiddenLayerZ;
             outputLayer = neuralNetworkValues.outputLayer;
-            outputLayerZ = neuralNetworkValues.outputLayerZ;
-            errorMatrix = neuralNetworkValues.errorMatrix;
-            oneOverBatchSize = neuralNetworkValues.oneOverBatchSize;
-            changeInOutputLayerError = neuralNetworkValues.changeInOutputLayerError;
-            changeInOutputWeights = neuralNetworkValues.changeInOutputWeights;
-            changeInOutputBias = neuralNetworkValues.changeInOutputBias;
-            changeInHiddenLayerError = neuralNetworkValues.changeInHiddenLayerError;
-            changeInHiddenLayerWeights = neuralNetworkValues.changeInHiddenLayerWeights;
-            changeInHiddenBias = neuralNetworkValues.changeInHiddenBias;
-            EndReason = endReason;
+            gradientClippingThreshold = neuralNetworkValues.gradientClippingThreshold;
+
+            this.learnRate = learnRate;
+            this.endReason = endReason;
             this.episodeRewards = episodeRewards;
             this.episodeTimeStep = episodeTimeStep;
             this.episodeExploration = episodeExploration;
+            this.gradientMagnitudes = gradientMagnitudes;
         }
-
-
     }
 
 }

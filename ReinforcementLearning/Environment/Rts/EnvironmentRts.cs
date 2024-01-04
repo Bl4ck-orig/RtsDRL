@@ -19,7 +19,6 @@ namespace ReinforcementLearning
 
         private const double DEFEAT_REWARD = -1.0f;
         private const double VICTORY_REWARD = 1.0f;
-        private const double OPERATION_NOT_POSSIBLE_CHOSEN_REWARD = -0.2f;
 
         private const double GHOULS_IN_DANGER_INCREASE_CHANCE = 0.1f;
         private const double GHOULS_IN_DANGER_KILL_CHANCE = 0.15f;
@@ -34,8 +33,8 @@ namespace ReinforcementLearning
         private const double INCREASE_FOODS_CHANCE_PER_GHOUL = 0.02f;
         private const double INCREASE_FOODS_CHANCE_PER_TRIBE = 0.05f;
         private const double DECREASE_ATTACKING_GHOUL_BY_DEATH_CHANCE = 0.1f;
-        private const double DECREASE_UNUSED_AGRESSIVE_TRIBES_CHANCE_PER_ATTACKING_GHOUL = 0.05f;
-        private const double DECREASE_UNUSED_AGRESSIVE_TRIBES_CHANCE_PER_ATTACKING_WITH_WEAPON_GHOUL = 0.1f;
+        private const double DECREASE_UNUSED_AGRESSIVE_TRIBES_CHANCE_PER_ATTACKING_GHOUL = 0.005f;
+        private const double DECREASE_UNUSED_AGRESSIVE_TRIBES_CHANCE_PER_ATTACKING_WITH_WEAPON_GHOUL = 0.0075f;
 
         public override int ObservationSpaceSize => State.Length;
 
@@ -104,43 +103,32 @@ namespace ReinforcementLearning
         }
 
 
-        protected override (double[] NextState, double Reward, bool IsTerminal) Act(int _action, Random _prng)
+        protected override (double[] NextState, double Reward, bool IsTerminal) Act(int _action)
         {
             double currentReward = GetStateReward(State);
 
             EEnemyOperation action = (EEnemyOperation)_action;
 
-            bool wasOperationSelectedPossible = false;
-            if (wasOperationSelectedPossible = enemyOperations[action].IsSimplifiedOperationPossible(this))
+            if (enemyOperations[action].IsSimplifiedOperationPossible(this))
                 enemyOperations[action].ApplySimplifiedOperation(this);
 
-            Tick(_prng);
+            Tick(prng);
 
             bool defeat = Variables[EEnemyInput.TotalGhouls].Value == 0;
             bool victory = Variables[EEnemyInput.TribesAggresive].Value == 0;
 
             double deltaReward = GetStateReward(State) - currentReward;
+
             if (defeat)
-                deltaReward += DEFEAT_REWARD;
+                deltaReward = DEFEAT_REWARD;
             if (victory)
-                deltaReward += VICTORY_REWARD;
-            if (wasOperationSelectedPossible)
-                deltaReward += OPERATION_NOT_POSSIBLE_CHOSEN_REWARD;
+                deltaReward = VICTORY_REWARD;
 
             return (State, deltaReward, defeat || victory);
         }
 
         private void Tick(Random _prng)
         {
-            // Debugging: 
-            //if (StepsCount > 100)
-            //{
-            //    if (_void == 0)
-            //        _void = 1;
-            //}
-            //else
-            //    _void = 0;
-
             if (ShouldIncreaseFoods(_prng))
                 IncreaseFoods();
 

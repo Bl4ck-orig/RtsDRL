@@ -549,5 +549,19 @@ namespace ReinforcementLearning
             return result;
         }
 
+        public static double EuclideanSum(double[,] _vector)
+        {
+            double euclideanSum = 0f;
+
+            for (int x = 0; x < _vector.GetLength(0); x++)
+            {
+                for (int y = 0; y < _vector.GetLength(1); y++)
+                {
+                    euclideanSum += Math.Pow(_vector[x, y], 2);
+                }
+            }
+
+            return euclideanSum;
+        }
     }
 }

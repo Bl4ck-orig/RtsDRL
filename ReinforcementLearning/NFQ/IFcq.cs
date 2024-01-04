@@ -4,13 +4,13 @@
     {
         double[,] GetOutputMatrix(double[,] _inputs);
 
-        double[] GetHighestRewardOutputIndex(double[,] _inputs);
+        double[] GetHighestRewardVector(double[,] _inputs);
 
         double[] GetPrediction(double[] _inputs);
 
-        void Backwards(double[,] _errorMatrix, double _learningRate);
+        void Backwards(double[,] _errorMatrix);
 
-        void AdjustWeightsAndBiases();
+        double AdjustWeightsAndBiases(double _learningRate);
 
         NeuralNetworkValues GetNeuralNetworkValues();
     }

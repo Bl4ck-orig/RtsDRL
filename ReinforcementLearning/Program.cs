@@ -3,20 +3,31 @@ using ReinforcementLearning.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using Utilities;
 
 namespace ReinforcementLearning
 {
     internal class Program
     {
         private static string fileNameNoExt = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Model";
+        private static string fileName = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Model_0_2024_01_03-11_17.bin";
+        private static string fileNameReward = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Rewards.txt";
+
+        private static int batchSize = 1024;
+        private static double learnRate = 0.00001f;
+        private static double maxMinutes = 360f;
+        private static int timeStepLimit = 100;
+        private static double gradientClippingThreshold = 50f;
+        private static bool normalizedGradientClipping = true;
 
         static void Main(string[] args)
         {
             //RunQLearning();
-
             RunNfq();
-
-            //TestModel(Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\FILE");
+            //ExportRewardData(fileNameReward);
+            //TestModel(fileName);
+            //TestModelFull(fileName);
         }
 
         private static void RunQLearning()
@@ -28,159 +39,24 @@ namespace ReinforcementLearning
             Console.ReadLine();
         }
 
-        private static void RunNfq()
+        private static void RunNfq(NeuralNetwork _nn = null)
         {
-            Dictionary<EEnemyInput, double> initialStateStandard = new Dictionary<EEnemyInput, double>()
-            {
-                { EEnemyInput.TotalGhouls, 10.0f },                                          
-                { EEnemyInput.IdlingGhouls, 10.0f },
-                { EEnemyInput.GhoulsInDanger, 0.0f },
-                { EEnemyInput.HungryIdlingGhouls, 0.0f },
-                { EEnemyInput.GhoulsWithWeapons, 0.0f },
-                { EEnemyInput.AttackingGhouls, 0.0f },
-                { EEnemyInput.AttackingGhoulsWithWeapons, 0.0f },
-                { EEnemyInput.DefendingGhouls, 0.0f },
-                { EEnemyInput.GhoulsInWorkshops, 0.0f },
-                { EEnemyInput.DefendingGhoulsWithWeapons, 0.0f },
-                { EEnemyInput.IdlingGhoulsWithWeapon, 0.0f },
-                { EEnemyInput.IdlingGhoulsNotHungry, 10.0f  },
-                { EEnemyInput.UnassignedWeaponsInRangeAndNotInDanger, 0.0f },
-                { EEnemyInput.UnusedWorkshopsInRangeAndNotInDanger, 0.0f },
-                { EEnemyInput.UsedWorkshopsInRangeAndNotInDanger, 0.0f },
-                { EEnemyInput.UnassignedFoodsInRangeAndNotInDanger, 0.0f },
-                { EEnemyInput.UnfinishedTribesInRangeAndNotInDanger, 0.0f },
-                { EEnemyInput.UnfinishedWorkshopsInRangeAndNotInDanger, 0.0f },
-                { EEnemyInput.TribesDefensive, 1.0f },
-                { EEnemyInput.TribesAggresive, 1.0f },
-                { EEnemyInput.Churches, 0.0f },
-                { EEnemyInput.UnbalancedTribes, 0.0f },
-                { EEnemyInput.BuildingTribeGhouls, 0.0f },
-                { EEnemyInput.BuildingWorkshopGhouls, 0.0f}
-            };
-
-            Dictionary<EEnemyInput, double> initialStateLateGame = new Dictionary<EEnemyInput, double>()
-            {
-                { EEnemyInput.TotalGhouls, 27.0f },
-                { EEnemyInput.IdlingGhouls, 15.0f },
-                { EEnemyInput.GhoulsInDanger, 5.0f },
-                { EEnemyInput.HungryIdlingGhouls, 5.0f },
-                { EEnemyInput.GhoulsWithWeapons, 8.0f },
-                { EEnemyInput.AttackingGhouls, 0.0f },
-                { EEnemyInput.AttackingGhoulsWithWeapons, 0.0f },
-                { EEnemyInput.DefendingGhouls, 0.0f },
-                { EEnemyInput.GhoulsInWorkshops, 2.0f },
-                { EEnemyInput.DefendingGhoulsWithWeapons, 0.0f },
-                { EEnemyInput.IdlingGhoulsWithWeapon, 8.0f },
-                { EEnemyInput.IdlingGhoulsNotHungry, 10.0f  },
-                { EEnemyInput.UnassignedWeaponsInRangeAndNotInDanger, 5.0f },
-                { EEnemyInput.UnusedWorkshopsInRangeAndNotInDanger, 2.0f },
-                { EEnemyInput.UsedWorkshopsInRangeAndNotInDanger, 2.0f },
-                { EEnemyInput.UnassignedFoodsInRangeAndNotInDanger, 10.0f },
-                { EEnemyInput.UnfinishedTribesInRangeAndNotInDanger, 1.0f },
-                { EEnemyInput.UnfinishedWorkshopsInRangeAndNotInDanger, 1.0f },
-                { EEnemyInput.TribesDefensive, 3.0f },
-                { EEnemyInput.TribesAggresive, 3.0f },
-                { EEnemyInput.Churches, 1.0f },
-                { EEnemyInput.UnbalancedTribes, 0.0f },
-                { EEnemyInput.BuildingTribeGhouls, 0.0f },
-                { EEnemyInput.BuildingWorkshopGhouls, 0.0f}
-            };
+            InputManager.ListenInputs();
             
-            Dictionary<EEnemyInput, double> initialStateLateGameDefending = new Dictionary<EEnemyInput, double>()
-            {
-                { EEnemyInput.TotalGhouls, 32.0f },
-                { EEnemyInput.IdlingGhouls, 15.0f },
-                { EEnemyInput.GhoulsInDanger, 5.0f },
-                { EEnemyInput.HungryIdlingGhouls, 5.0f },
-                { EEnemyInput.GhoulsWithWeapons, 11.0f },
-                { EEnemyInput.AttackingGhouls, 0.0f },
-                { EEnemyInput.AttackingGhoulsWithWeapons, 0.0f },
-                { EEnemyInput.DefendingGhouls, 2.0f },
-                { EEnemyInput.GhoulsInWorkshops, 2.0f },
-                { EEnemyInput.DefendingGhoulsWithWeapons, 3.0f },
-                { EEnemyInput.IdlingGhoulsWithWeapon, 8.0f },
-                { EEnemyInput.IdlingGhoulsNotHungry, 10.0f  },
-                { EEnemyInput.UnassignedWeaponsInRangeAndNotInDanger, 5.0f },
-                { EEnemyInput.UnusedWorkshopsInRangeAndNotInDanger, 2.0f },
-                { EEnemyInput.UsedWorkshopsInRangeAndNotInDanger, 2.0f },
-                { EEnemyInput.UnassignedFoodsInRangeAndNotInDanger, 10.0f },
-                { EEnemyInput.UnfinishedTribesInRangeAndNotInDanger, 1.0f },
-                { EEnemyInput.UnfinishedWorkshopsInRangeAndNotInDanger, 0.0f },
-                { EEnemyInput.TribesDefensive, 3.0f },
-                { EEnemyInput.TribesAggresive, 3.0f },
-                { EEnemyInput.Churches, 1.0f },
-                { EEnemyInput.UnbalancedTribes, 0.0f },
-                { EEnemyInput.BuildingTribeGhouls, 0.0f },
-                { EEnemyInput.BuildingWorkshopGhouls, 0.0f}
-            };
-            
-            Dictionary<EEnemyInput, double> initialStateLateGameAttacking = new Dictionary<EEnemyInput, double>()
-            {
-                { EEnemyInput.TotalGhouls, 32.0f },
-                { EEnemyInput.IdlingGhouls, 15.0f },
-                { EEnemyInput.GhoulsInDanger, 5.0f },
-                { EEnemyInput.HungryIdlingGhouls, 5.0f },
-                { EEnemyInput.GhoulsWithWeapons, 11.0f },
-                { EEnemyInput.AttackingGhouls, 2.0f },
-                { EEnemyInput.AttackingGhoulsWithWeapons, 3.0f },
-                { EEnemyInput.DefendingGhouls, 0.0f },
-                { EEnemyInput.GhoulsInWorkshops, 2.0f },
-                { EEnemyInput.DefendingGhoulsWithWeapons, 0.0f },
-                { EEnemyInput.IdlingGhoulsWithWeapon, 8.0f },
-                { EEnemyInput.IdlingGhoulsNotHungry, 10.0f  },
-                { EEnemyInput.UnassignedWeaponsInRangeAndNotInDanger, 5.0f },
-                { EEnemyInput.UnusedWorkshopsInRangeAndNotInDanger, 2.0f },
-                { EEnemyInput.UsedWorkshopsInRangeAndNotInDanger, 2.0f },
-                { EEnemyInput.UnassignedFoodsInRangeAndNotInDanger, 10.0f },
-                { EEnemyInput.UnfinishedTribesInRangeAndNotInDanger, 0.0f },
-                { EEnemyInput.UnfinishedWorkshopsInRangeAndNotInDanger, 1.0f },
-                { EEnemyInput.TribesDefensive, 3.0f },
-                { EEnemyInput.TribesAggresive, 3.0f },
-                { EEnemyInput.Churches, 1.0f },
-                { EEnemyInput.UnbalancedTribes, 0.0f },
-                { EEnemyInput.BuildingTribeGhouls, 0.0f },
-                { EEnemyInput.BuildingWorkshopGhouls, 0.0f }
-            };
-            
-            Dictionary<EEnemyInput, double> initialStateMidGame = new Dictionary<EEnemyInput, double>()
-            {
-                { EEnemyInput.TotalGhouls, 20.0f },
-                { EEnemyInput.IdlingGhouls, 10.0f },
-                { EEnemyInput.GhoulsInDanger, 1.0f },
-                { EEnemyInput.HungryIdlingGhouls, 5.0f },
-                { EEnemyInput.GhoulsWithWeapons, 1.0f },
-                { EEnemyInput.AttackingGhouls, 0.0f },
-                { EEnemyInput.AttackingGhoulsWithWeapons, 0.0f },
-                { EEnemyInput.DefendingGhouls, 0.0f },
-                { EEnemyInput.GhoulsInWorkshops, 2.0f },
-                { EEnemyInput.DefendingGhoulsWithWeapons, 0.0f },
-                { EEnemyInput.IdlingGhoulsWithWeapon, 2.0f },
-                { EEnemyInput.IdlingGhoulsNotHungry, 10.0f },
-                { EEnemyInput.UnassignedWeaponsInRangeAndNotInDanger, 2.0f },
-                { EEnemyInput.UnusedWorkshopsInRangeAndNotInDanger, 0.0f },
-                { EEnemyInput.UsedWorkshopsInRangeAndNotInDanger, 1.0f },
-                { EEnemyInput.UnassignedFoodsInRangeAndNotInDanger, 7.0f },
-                { EEnemyInput.UnfinishedTribesInRangeAndNotInDanger, 1.0f },
-                { EEnemyInput.UnfinishedWorkshopsInRangeAndNotInDanger, 1.0f },
-                { EEnemyInput.TribesDefensive, 1.0f },
-                { EEnemyInput.TribesAggresive, 1.0f },
-                { EEnemyInput.Churches, 1.0f },
-                { EEnemyInput.UnbalancedTribes, 0.0f },
-                { EEnemyInput.BuildingTribeGhouls, 2.0f },
-                { EEnemyInput.BuildingWorkshopGhouls, 2.0f }
-            };
-
             var initialStates = new List<Dictionary<EEnemyInput, double>>() 
             { 
-                initialStateStandard,
-                initialStateLateGame,
-                initialStateLateGameDefending,
-                initialStateLateGameAttacking,
-                initialStateMidGame 
+                StartStates.initialStateStandard,
+                StartStates.initialStateLateGame,
+                StartStates.initialStateLateGameDefending,
+                StartStates.initialStateLateGameAttacking,
+                StartStates.initialStateMidGame,
+                StartStates.shouldTryDefend,
+                StartStates.shouldAttack,
+                StartStates.shouldEat,
+                StartStates.shouldTryBalanceTribes,
             };
 
             Random prng = new Random();
-            int batchSize = 1024;
             var environment = new EnvironmentRts(initialStates);
 
             EGreedyStrategy trainingStrategy = new EGreedyStrategy(0.5f);
@@ -189,10 +65,14 @@ namespace ReinforcementLearning
             NfqArgs nfqArgs = new NfqArgs(environment,
                 evaluationStrategy,
                 trainingStrategy,
-                batchSize: batchSize,
-                maxMinutes: 480f);
+                _learnRate: learnRate,
+                _batchSize: batchSize,
+                _maxMinutes: maxMinutes,
+                _timeStepLimit: timeStepLimit,
+                _gradientClippingThreshold: gradientClippingThreshold,
+                _normalizedGradientClipping: normalizedGradientClipping);
 
-            Nfq nfq = new Nfq(nfqArgs);
+            Nfq nfq = _nn == null ? new Nfq(nfqArgs) : new Nfq(nfqArgs, _nn);
             NfqResult result = nfq.Train();
 
             string file = fileNameNoExt + "_0_" + DateTime.Now.ToString("yyyy_MM_dd-HH_mm") + ".bin";
@@ -206,136 +86,111 @@ namespace ReinforcementLearning
             Console.ReadKey();
         }
 
+        private static void ExportRewardData(string _filename)
+        {
+            if (!File.Exists(_filename))
+                throw new ArgumentException("File name not existant");
+
+            TrainingResult _trainingResult = Serializer.DeserializeObject(_filename);
+
+            DataExporter.ExportData(_trainingResult.episodeRewards, _filename);
+        }
+
         private static void TestModel(string _filename)
         {
             if (!File.Exists(_filename))
                 throw new ArgumentException("File name not existant");
 
+            TrainingResult trainingResult = Serializer.DeserializeObject(_filename);
 
-            TrainingResult _trainingResult = Serializer.DeserializeObject(_filename);
-            NeuralNetwork nn = new NeuralNetwork(_trainingResult);
-
-            double[] shouldTryDefend = new double[]
-            {
-                20.0f, //EEnemyInput.TotalGhouls
-                16.0f, //EEnemyInput.IdlingGhouls
-                4.0f, //EEnemyInput.GhoulsInDanger
-                0.0f, //EEnemyInput.HungryIdlingGhouls
-                8.0f, //EEnemyInput.GhoulsWithWeapons
-                0.0f, //EEnemyInput.AttackingGhouls
-                0.0f, //EEnemyInput.AttackingGhoulsWithWeapons
-                0.0f, //EEnemyInput.DefendingGhouls
-                0.0f, //EEnemyInput.GhoulsInWorkshops
-                0.0f, //EEnemyInput.DefendingGhoulsWithWeapons
-                8.0f, //EEnemyInput.IdlingGhoulsWithWeapon
-                16.0f, //EEnemyInput.IdlingGhoulsNotHungry
-                0.0f, //EEnemyInput.UnassignedWeaponsInRangeAndNotInDanger
-                0.0f, //EEnemyInput.UnusedWorkshopsInRangeAndNotInDanger
-                0.0f, //EEnemyInput.UsedWorkshopsInRangeAndNotInDanger
-                0.0f, //EEnemyInput.UnassignedFoodsInRangeAndNotInDanger
-                0.0f, //EEnemyInput.UnfinishedTribesInRangeAndNotInDanger
-                0.0f, //EEnemyInput.UnfinishedWorkshopsInRangeAndNotInDanger
-                1.0f, //EEnemyInput.TribesDefensive
-                1.0f, //EEnemyInput.TribesAggresive
-                0.0f, //EEnemyInput.Churches
-                0.0f, //EEnemyInput.UnbalancedTribes
-                0.0f, //EEnemyInput.BuildingTribeGhouls
-                0.0f, //EEnemyInput.BuildingWorkshopGhouls
-            };
-
-            double[] shouldAttack = new double[]
-            {
-                20.0f, //EEnemyInput.TotalGhouls
-                20.0f, //EEnemyInput.IdlingGhouls
-                0.0f, //EEnemyInput.GhoulsInDanger
-                0.0f, //EEnemyInput.HungryIdlingGhouls
-                8.0f, //EEnemyInput.GhoulsWithWeapons
-                0.0f, //EEnemyInput.AttackingGhouls
-                0.0f, //EEnemyInput.AttackingGhoulsWithWeapons
-                0.0f, //EEnemyInput.DefendingGhouls
-                0.0f, //EEnemyInput.GhoulsInWorkshops
-                0.0f, //EEnemyInput.DefendingGhoulsWithWeapons
-                8.0f, //EEnemyInput.IdlingGhoulsWithWeapon
-                20.0f, //EEnemyInput.IdlingGhoulsNotHungry
-                0.0f, //EEnemyInput.UnassignedWeaponsInRangeAndNotInDanger
-                0.0f, //EEnemyInput.UnusedWorkshopsInRangeAndNotInDanger
-                0.0f, //EEnemyInput.UsedWorkshopsInRangeAndNotInDanger
-                0.0f, //EEnemyInput.UnassignedFoodsInRangeAndNotInDanger
-                0.0f, //EEnemyInput.UnfinishedTribesInRangeAndNotInDanger
-                0.0f, //EEnemyInput.UnfinishedWorkshopsInRangeAndNotInDanger
-                1.0f, //EEnemyInput.TribesDefensive
-                1.0f, //EEnemyInput.TribesAggresive
-                0.0f, //EEnemyInput.Churches
-                0.0f, //EEnemyInput.UnbalancedTribes
-                0.0f, //EEnemyInput.BuildingTribeGhouls
-                0.0f, //EEnemyInput.BuildingWorkshopGhouls
-            };
-
-            double[] shouldEat = new double[]
-            {
-                20.0f, //EEnemyInput.TotalGhouls
-                0.0f, //EEnemyInput.IdlingGhouls
-                0.0f, //EEnemyInput.GhoulsInDanger
-                20.0f, //EEnemyInput.HungryIdlingGhouls
-                0.0f, //EEnemyInput.GhoulsWithWeapons
-                0.0f, //EEnemyInput.AttackingGhouls
-                0.0f, //EEnemyInput.AttackingGhoulsWithWeapons
-                0.0f, //EEnemyInput.DefendingGhouls
-                0.0f, //EEnemyInput.GhoulsInWorkshops
-                0.0f, //EEnemyInput.DefendingGhoulsWithWeapons
-                8.0f, //EEnemyInput.IdlingGhoulsWithWeapon
-                0.0f, //EEnemyInput.IdlingGhoulsNotHungry
-                0.0f, //EEnemyInput.UnassignedWeaponsInRangeAndNotInDanger
-                0.0f, //EEnemyInput.UnusedWorkshopsInRangeAndNotInDanger
-                0.0f, //EEnemyInput.UsedWorkshopsInRangeAndNotInDanger
-                20.0f, //EEnemyInput.UnassignedFoodsInRangeAndNotInDanger
-                0.0f, //EEnemyInput.UnfinishedTribesInRangeAndNotInDanger
-                0.0f, //EEnemyInput.UnfinishedWorkshopsInRangeAndNotInDanger
-                1.0f, //EEnemyInput.TribesDefensive
-                1.0f, //EEnemyInput.TribesAggresive
-                0.0f, //EEnemyInput.Churches
-                0.0f, //EEnemyInput.UnbalancedTribes
-                0.0f, //EEnemyInput.BuildingTribeGhouls
-                0.0f, //EEnemyInput.BuildingWorkshopGhouls
-            };
-
-            double[] shouldTryBalanceTribes = new double[]
-            {
-                20.0f, //EEnemyInput.TotalGhouls
-                20.0f, //EEnemyInput.IdlingGhouls
-                0.0f, //EEnemyInput.GhoulsInDanger
-                0.0f, //EEnemyInput.HungryIdlingGhouls
-                8.0f, //EEnemyInput.GhoulsWithWeapons
-                0.0f, //EEnemyInput.AttackingGhouls
-                0.0f, //EEnemyInput.AttackingGhoulsWithWeapons
-                0.0f, //EEnemyInput.DefendingGhouls
-                0.0f, //EEnemyInput.GhoulsInWorkshops
-                0.0f, //EEnemyInput.DefendingGhoulsWithWeapons
-                0.0f, //EEnemyInput.IdlingGhoulsWithWeapon
-                20.0f, //EEnemyInput.IdlingGhoulsNotHungry
-                0.0f, //EEnemyInput.UnassignedWeaponsInRangeAndNotInDanger
-                0.0f, //EEnemyInput.UnusedWorkshopsInRangeAndNotInDanger
-                0.0f, //EEnemyInput.UsedWorkshopsInRangeAndNotInDanger
-                0.0f, //EEnemyInput.UnassignedFoodsInRangeAndNotInDanger
-                0.0f, //EEnemyInput.UnfinishedTribesInRangeAndNotInDanger
-                0.0f, //EEnemyInput.UnfinishedWorkshopsInRangeAndNotInDanger
-                4.0f, //EEnemyInput.TribesDefensive
-                1.0f, //EEnemyInput.TribesAggresive
-                0.0f, //EEnemyInput.Churches
-                4.0f, //EEnemyInput.UnbalancedTribes
-                0.0f, //EEnemyInput.BuildingTribeGhouls
-                0.0f, //EEnemyInput.BuildingWorkshopGhouls
-            };
+            NeuralNetwork nn = new NeuralNetwork(trainingResult);
 
             Random prng = new Random();
             GreedyStrategy greedy = new GreedyStrategy();
 
-            Console.WriteLine("Should defend: " + (EEnemyOperation)greedy.SelectAction(shouldTryDefend, nn, prng));
-            Console.WriteLine("Should attack: " + (EEnemyOperation)greedy.SelectAction(shouldAttack, nn, prng));
-            Console.WriteLine("Should eat: " + (EEnemyOperation)greedy.SelectAction(shouldEat, nn, prng));
-            Console.WriteLine("Should balance tribes: " + (EEnemyOperation)greedy.SelectAction(shouldTryBalanceTribes, nn, prng));
+            Console.WriteLine("Should defend: " + (EEnemyOperation)greedy.SelectAction(StartStates.shouldTryDefend.Values.ToArray(), nn, prng));
+            Console.WriteLine("Should attack: " + (EEnemyOperation)greedy.SelectAction(StartStates.shouldAttack.Values.ToArray(), nn, prng));
+            Console.WriteLine("Should eat: " + (EEnemyOperation)greedy.SelectAction(StartStates.shouldEat.Values.ToArray(), nn, prng));
+            Console.WriteLine("Should balance tribes: " + (EEnemyOperation)greedy.SelectAction(StartStates.shouldTryBalanceTribes.Values.ToArray(), nn, prng));
 
             Console.ReadKey();
         }
+
+
+        private static void TestModelFull(string _filename)
+        {
+            for(int i = 0; i < 1; i++)
+            {
+                TestModelState(_filename, i, StartStates.initialStateStandard);
+            }
+
+            //Console.WriteLine("Late Game");
+            //TestModelState(_filename, StartStates.initialStateLateGame);
+            //Console.WriteLine("Late Game Defending");
+            //TestModelState(_filename, StartStates.initialStateLateGameDefending);
+            //Console.WriteLine("Late Game Attacking");
+            //TestModelState(_filename, StartStates.initialStateLateGameAttacking);
+            //Console.WriteLine("Mid Game");
+            //TestModelState(_filename, StartStates.initialStateMidGame);
+            //Console.WriteLine("Should Defend");
+            //TestModelState(_filename, StartStates.shouldTryDefend);
+            //Console.WriteLine("Should Attack");
+            //TestModelState(_filename, StartStates.shouldAttack);
+            //Console.WriteLine("Should Eat");
+            //TestModelState(_filename, StartStates.shouldEat);
+            //Console.WriteLine("Should balance tribes");
+            //TestModelState(_filename, StartStates.shouldTryBalanceTribes);
+
+            Console.ReadKey();
+        }
+
+
+        private static void TestModelState(string _filename, int _seed, Dictionary<EEnemyInput, double> _state)
+        {
+            if (!File.Exists(_filename))
+                throw new ArgumentException("File name not existant");
+
+            TrainingResult trainingResult = Serializer.DeserializeObject(_filename);
+
+            NeuralNetwork nn = new NeuralNetwork(trainingResult);
+
+            Random prngTest = new Random();
+            GreedyStrategy greedy = new GreedyStrategy();
+
+            EnvironmentRts rtsTest = new EnvironmentRts(new List<Dictionary<EEnemyInput, double>>() { _state });
+            EnvironmentRts rtsDummy = new EnvironmentRts(new List<Dictionary<EEnemyInput, double>>() { _state });
+
+            rtsTest.Reset(true, true, _seed, timeStepLimit);
+            rtsDummy.Reset(true, true, _seed, timeStepLimit);
+
+            double cumulativeRewardTest = 0f;
+            double cumulativeRewardDummy = 0f;
+            bool done = false;
+
+            StepResult<double[]> testResult = default;
+            StepResult<double[]> dummyResult = default;
+
+            while (!done)
+            {
+                var action = greedy.SelectAction(rtsTest.State, nn, prngTest);
+                testResult = rtsTest.Step((int)EEnemyOperation.None);
+                dummyResult = rtsDummy.Step(action);
+
+                Console.WriteLine((EEnemyOperation)action);
+
+                cumulativeRewardTest += testResult.Reward;
+                cumulativeRewardDummy += dummyResult.Reward;
+
+                done = testResult.IsTruncated || testResult.Done;
+                done |= dummyResult.IsTruncated || dummyResult.Done;
+            }
+
+            Console.WriteLine("[DUMMY] Cumulative Reward: " + cumulativeRewardDummy + "\t Final Reward: " + dummyResult.Reward.ToString());
+            Console.WriteLine("[TEST]  Cumulative Reward: " + cumulativeRewardTest + "\t Final Reward: " + testResult.Reward.ToString());
+
+        }
+
+
+
     }
 }

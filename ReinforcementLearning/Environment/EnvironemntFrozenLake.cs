@@ -131,9 +131,9 @@ namespace ReinforcementLearning
             15,
         };
 
-        protected override (int NextState, double Reward, bool IsTerminal) Act(int _action, Random _prng)
+        protected override (int NextState, double Reward, bool IsTerminal) Act(int _action)
         {
-            var stepResult = p[new StateAction<int>(State, _action)].Act(_prng);
+            var stepResult = p[new StateAction<int>(State, _action)].Act(prng);
             return (stepResult.NextState, stepResult.Reward, terminalStates.Contains(stepResult.NextState));
         }
     }
