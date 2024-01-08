@@ -11,19 +11,21 @@ namespace ReinforcementLearning
     internal class Program
     {
         private static string fileNameNoExt = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Model";
-        private static string fileName = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Model_0_2024_01_03-11_17.bin";
+        private static string fileName = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Model_0_2024_01_06-04_12.bin";
         private static string fileNameReward = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Rewards.txt";
 
         private static int batchSize = 1024;
-        private static double learnRate = 0.00001f;
+        private static double learnRate = 0.0001f;
         private static double maxMinutes = 360f;
         private static int timeStepLimit = 100;
-        private static double gradientClippingThreshold = 50f;
-        private static bool normalizedGradientClipping = true;
+        private static double exploration = 0.2f;
+        private static double gradientClippingThreshold = 150f;
+        private static double minZeroConvergeThreshold = 0.00001f;
 
         static void Main(string[] args)
         {
             //RunQLearning();
+            //ContinueNfq(fileName);
             RunNfq();
             //ExportRewardData(fileNameReward);
             //TestModel(fileName);
@@ -37,6 +39,15 @@ namespace ReinforcementLearning
             Console.WriteLine("\n" + qLearningResult.ToString());
 
             Console.ReadLine();
+        }
+
+        private static void ContinueNfq(string _filename)
+        {
+            TrainingResult trainingResult = Serializer.DeserializeObject(_filename);
+
+            NeuralNetwork nn = new NeuralNetwork(trainingResult);
+
+            RunNfq(nn);
         }
 
         private static void RunNfq(NeuralNetwork _nn = null)
@@ -59,7 +70,7 @@ namespace ReinforcementLearning
             Random prng = new Random();
             var environment = new EnvironmentRts(initialStates);
 
-            EGreedyStrategy trainingStrategy = new EGreedyStrategy(0.5f);
+            EGreedyStrategy trainingStrategy = new EGreedyStrategy(exploration);
             GreedyStrategy evaluationStrategy = new GreedyStrategy();
 
             NfqArgs nfqArgs = new NfqArgs(environment,
@@ -70,9 +81,10 @@ namespace ReinforcementLearning
                 _maxMinutes: maxMinutes,
                 _timeStepLimit: timeStepLimit,
                 _gradientClippingThreshold: gradientClippingThreshold,
-                _normalizedGradientClipping: normalizedGradientClipping);
+                _minZeroConvergeThreshold: minZeroConvergeThreshold);
 
             Nfq nfq = _nn == null ? new Nfq(nfqArgs) : new Nfq(nfqArgs, _nn);
+
             NfqResult result = nfq.Train();
 
             string file = fileNameNoExt + "_0_" + DateTime.Now.ToString("yyyy_MM_dd-HH_mm") + ".bin";
@@ -119,27 +131,23 @@ namespace ReinforcementLearning
 
         private static void TestModelFull(string _filename)
         {
-            for(int i = 0; i < 1; i++)
-            {
-                TestModelState(_filename, i, StartStates.initialStateStandard);
-            }
-
-            //Console.WriteLine("Late Game");
-            //TestModelState(_filename, StartStates.initialStateLateGame);
-            //Console.WriteLine("Late Game Defending");
-            //TestModelState(_filename, StartStates.initialStateLateGameDefending);
-            //Console.WriteLine("Late Game Attacking");
-            //TestModelState(_filename, StartStates.initialStateLateGameAttacking);
-            //Console.WriteLine("Mid Game");
-            //TestModelState(_filename, StartStates.initialStateMidGame);
-            //Console.WriteLine("Should Defend");
-            //TestModelState(_filename, StartStates.shouldTryDefend);
-            //Console.WriteLine("Should Attack");
-            //TestModelState(_filename, StartStates.shouldAttack);
-            //Console.WriteLine("Should Eat");
-            //TestModelState(_filename, StartStates.shouldEat);
-            //Console.WriteLine("Should balance tribes");
-            //TestModelState(_filename, StartStates.shouldTryBalanceTribes);
+            int i = 0;
+            Console.WriteLine("Late Game");
+            TestModelState(_filename, i++, StartStates.initialStateLateGame);
+            Console.WriteLine("Late Game Defending");
+            TestModelState(_filename, i++, StartStates.initialStateLateGameDefending);
+            Console.WriteLine("Late Game Attacking");
+            TestModelState(_filename, i++, StartStates.initialStateLateGameAttacking);
+            Console.WriteLine("Mid Game");
+            TestModelState(_filename, i++, StartStates.initialStateMidGame);
+            Console.WriteLine("Should Defend");
+            TestModelState(_filename, i++, StartStates.shouldTryDefend);
+            Console.WriteLine("Should Attack");
+            TestModelState(_filename, i++, StartStates.shouldAttack);
+            Console.WriteLine("Should Eat");
+            TestModelState(_filename, i++, StartStates.shouldEat);
+            Console.WriteLine("Should balance tribes");
+            TestModelState(_filename, i++, StartStates.shouldTryBalanceTribes);
 
             Console.ReadKey();
         }

@@ -14,7 +14,7 @@ namespace ReinforcementLearning
 
         protected override void ApplyActivationFunction()
         {
-            layerValues = Commons.SoftMax(layerValuesZ);
+            layerValues = layerValuesZ.Clone() as double[,];
         }
 
         public void BackwardPropagate(double[,] _errorMatrix)

@@ -4,7 +4,7 @@
     {
         public readonly double LearnRate;
         public readonly int BatchSize;
-        public readonly bool NormalizedGradientClipping;
+        public readonly double MinZeroConvergeThreshold;
         public readonly int Epochs;
         public readonly Environment<double[]> Environment;
         public readonly double Gamma;
@@ -23,7 +23,7 @@
             IStrategy _trainingStrategy,
             double _learnRate = 0.0001f,
             int _batchSize = 1024,
-            bool _normalizedGradientClipping = false,
+            double _minZeroConvergeThreshold = 0.0000001f,
             int _epochs = 40,
             double _gamma = 1.0f,
             double _maxMinutes = 600f,
@@ -36,7 +36,7 @@
         {
             LearnRate = _learnRate;
             BatchSize = _batchSize;
-            NormalizedGradientClipping = _normalizedGradientClipping;
+            MinZeroConvergeThreshold = _minZeroConvergeThreshold;
             Epochs = _epochs;
             Environment = _environment;
             Gamma = _gamma;

@@ -55,7 +55,7 @@ namespace ReinforcementLearning
                 nA,
                 batchSize,
                 _args.GradientClippingThreshold,
-                _args.NormalizedGradientClipping,
+                _args.MinZeroConvergeThreshold,
                 prng);
 
             experiences = new List<Experience<double[]>>();
@@ -199,23 +199,26 @@ namespace ReinforcementLearning
             List<double> isTerminals = experiences.Select(x => x.IsFailure).ToList();
 
             double[,] nextStateFeatureMatrix = Commons.ToMatrix(nextStates).Transpose(); 
-            double[] highestRewardOutputIndex = onlineModel.GetHighestRewardVector(nextStateFeatureMatrix);
-            double[,] maxAQSp = Commons.Unsqueeze(highestRewardOutputIndex); 
+            double[,] maxAQSp = onlineModel.GetOutputMatrix(nextStateFeatureMatrix);
             double[] oneMinusTerminals = Commons.SubtractFromValue(1.0f, isTerminals).ToArray();
-            double[,] targetQS_a = Commons.MultiplyMatrixByArray(maxAQSp, oneMinusTerminals);
-            double[,] targetQS_b = Commons.AddMatrixBy(targetQS_a, gamma);
-            double[,] targetQS = Commons.AddVectorToMatrixByRows(targetQS_b, rewards.ToArray());  
+            double[,] targetQS_a = Commons.MultiplyMatrixByArrayPerColumn(maxAQSp, oneMinusTerminals);
+            double[,] targetQS_b = Commons.Multiply(targetQS_a, gamma);
+            double[,] targetQS = Commons.AddVectorToMatrix(targetQS_b, rewards.ToArray());  
 
             double[,] stateFeatureMatrix = Commons.ToMatrix(states).Transpose(); 
             double[,] statePredictionOutput = onlineModel.GetOutputMatrix(stateFeatureMatrix);  
-            double[] qSa = new double[batchSize];
-            for (int i = 0; i < batchSize; i++)
+            double[,] tdErrors = Commons.Subtract(targetQS, statePredictionOutput);
+
+            double[,] errorMatrix = new double[tdErrors.GetLength(0), tdErrors.GetLength(1)];
+            for (int i = 0; i < tdErrors.GetLength(0); i++)
             {
-                qSa[i] = statePredictionOutput[actions[i], i];  
+                for (int j = 0; j < tdErrors.GetLength(1); j++)
+                {
+                    errorMatrix[i, j] = Math.Pow(tdErrors[i, j], 2);
+                }
             }
 
-            double[,] tdErrors = Commons.SubtractVectorFromMatrixColumns(qSa, statePredictionOutput);
-            onlineModel.Backwards(tdErrors);
+            onlineModel.Backwards(errorMatrix);
             double gradientMagnitude = onlineModel.AdjustWeightsAndBiases(learnRate);
 
             try

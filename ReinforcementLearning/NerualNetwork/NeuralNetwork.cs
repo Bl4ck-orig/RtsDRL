@@ -7,7 +7,7 @@ namespace ReinforcementLearning
         private int inputSize;
         private int outputSize;
         private int batchSize;
-        private bool normalizedClipping;
+        private double minZeroConvergeThreshold;
         private int hiddenLayerNodesAmount;
 
         private InputLayer inputLayer;
@@ -22,13 +22,13 @@ namespace ReinforcementLearning
             int _outputSize,
             int _batchSize,
             double _gradientClippingThreshold, 
-            bool _normalizedClipping,
+            double _minZeroConvergeThreshold,
             Random _prng)
         {
             inputSize = _inputSize;
             outputSize = _outputSize;
             batchSize = _batchSize;
-            normalizedClipping = _normalizedClipping;
+            minZeroConvergeThreshold = _minZeroConvergeThreshold;
 
             hiddenLayerNodesAmount = _hiddenLayerNodesAmount;
 
@@ -118,6 +118,10 @@ namespace ReinforcementLearning
 
         private double GradientClipping()
         {
+            HandleNan();
+
+            ValueGradientClipping();
+
             double gradientMagnitude = GradientMagnitude();
 
             if (Double.IsNaN(gradientMagnitude))
@@ -126,12 +130,25 @@ namespace ReinforcementLearning
             if (gradientMagnitude < gradientClippingThreshold)
                 return gradientMagnitude;
 
-            if (normalizedClipping)
-                NormalizedGradientClipping(gradientMagnitude);
-            else
-                ValueGradientClipping();
+            NormalizedGradientClipping(gradientMagnitude);
 
             return gradientMagnitude;
+        }
+
+        private void HandleNan()
+        {
+            foreach (var hiddenLayer in hiddenLayers)
+                hiddenLayer.HandleNan(minZeroConvergeThreshold, gradientClippingThreshold);
+
+            outputLayer.HandleNan(minZeroConvergeThreshold, gradientClippingThreshold);
+        }
+
+        private void ValueGradientClipping()
+        {
+            foreach (var hiddenlayer in hiddenLayers)
+                hiddenlayer.ClipWeightsAndBiases(Math.Sqrt(gradientClippingThreshold));
+
+            outputLayer.ClipWeightsAndBiases(Math.Sqrt(gradientClippingThreshold));
         }
 
         private double GradientMagnitude()
@@ -163,20 +180,12 @@ namespace ReinforcementLearning
                 hiddenLayer.ScaleChangeInWeightsAndBias(changeOfEachElement);
         }
 
-        private void ValueGradientClipping()
-        {
-            foreach(var hiddenlayer in hiddenLayers)
-                hiddenlayer.ClipWeightsAndBiases(Math.Sqrt(gradientClippingThreshold));
-
-            outputLayer.ClipWeightsAndBiases(Math.Sqrt(gradientClippingThreshold));
-        }
-
         public NeuralNetworkValues GetNeuralNetworkValues()
         {
             return new NeuralNetworkValues(inputSize,
                 outputSize,
                 batchSize,
-                normalizedClipping,
+                minZeroConvergeThreshold,
                 hiddenLayerNodesAmount,
                 inputLayer,
                 hiddenLayers,

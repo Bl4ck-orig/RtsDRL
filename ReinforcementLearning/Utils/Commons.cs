@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.IO.Compression;
 using System.Linq;
@@ -105,7 +106,14 @@ namespace ReinforcementLearning
         {
             double[] copy = _array.Clone() as double[];
             for (int i = 0; i < copy.Length; i++)
+            {
                 copy[i] -= _scalar;
+
+#if DEBUG
+                if (Double.IsNaN(copy[i]))
+                    throw new ArgumentException();
+#endif
+            }
             return copy;
         }
 
@@ -116,7 +124,14 @@ namespace ReinforcementLearning
 
             double[] copy = _array.Clone() as double[];
             for (int i = 0; i < copy.Length; i++)
+            {
                 copy[i] /= _scalar;
+
+#if DEBUG
+                if (Double.IsNaN(copy[i]))
+                    throw new ArgumentException();
+#endif
+            }
             return copy;
         }
 
@@ -124,7 +139,14 @@ namespace ReinforcementLearning
         {
             double[] copy = _array.Clone() as double[];
             for (int i = 0; i < copy.Length; i++)
+            {
                 copy[i] *= _scalar;
+
+#if DEBUG
+                if (Double.IsNaN(copy[i]))
+                    throw new ArgumentException();
+#endif
+            }
             return copy;
         }
 
@@ -132,7 +154,13 @@ namespace ReinforcementLearning
         {
             double[] copy = _array.Clone() as double[];
             for (int i = 0; i < copy.Length; i++)
+            {
                 copy[i] += _scalar;
+#if DEBUG
+                if (Double.IsNaN(copy[i]))
+                    throw new ArgumentException();
+#endif
+            }
             return copy;
         }
 
@@ -210,6 +238,11 @@ namespace ReinforcementLearning
                         product[matrix1_row, matrix2_col] +=
                           _matrix1[matrix1_row, matrix1_col] *
                           _matrix2[matrix1_col, matrix2_col];
+
+#if DEBUG
+                        if (Double.IsNaN(product[matrix1_row, matrix2_col]))
+                            throw new ArgumentException();
+#endif
                     }
                 }
             }
@@ -234,6 +267,11 @@ namespace ReinforcementLearning
                 for (int y = 0; y < matrix1Cols; y++)
                 {
                     product[x, y] = _matrix1[x, y] + _matrix2[x, 0];
+
+#if DEBUG
+                    if (Double.IsNaN(product[x, y]))
+                        throw new ArgumentException();
+#endif
                 }
             }
 
@@ -257,6 +295,11 @@ namespace ReinforcementLearning
             {
                 for (int y = 0; y < _matrixHeight; y++)
                 {
+
+#if DEBUG
+                    if (Double.IsNaN(_matrix[x, y] + _by[x, y]))
+                        throw new ArgumentException();
+#endif
                     c[x, y] = _matrix[x, y] + _by[x, y];
                 }
             }
@@ -281,6 +324,10 @@ namespace ReinforcementLearning
             {
                 for (int y = 0; y < _matrixHeight; y++)
                 {
+#if DEBUG
+                    if (Double.IsNaN(_matrix[x, y] * _by[x, y]))
+                        throw new ArgumentException();
+#endif
                     c[x, y] = _matrix[x, y] - _by[x, y];
                 }
             }
@@ -298,6 +345,10 @@ namespace ReinforcementLearning
             {
                 for (int y = 0; y < _matrixHeight; y++)
                 {
+#if DEBUG
+                    if (Double.IsNaN(_matrix[x, y] * _scalar))
+                        throw new ArgumentException();
+#endif
                     c[x, y] = _matrix[x, y] * _scalar;
                 }
             }
@@ -322,6 +373,11 @@ namespace ReinforcementLearning
             {
                 for (int y = 0; y < _matrixHeight; y++)
                 {
+
+#if DEBUG
+                    if (Double.IsNaN(_matrix[x, y] * _other[x, y]))
+                        throw new ArgumentException();
+#endif
                     c[x, y] = _matrix[x, y] * _other[x, y];
                 }
             }
@@ -345,6 +401,10 @@ namespace ReinforcementLearning
                 for (int j = 0; j < cols; j++)
                 {
                     result[i, j] = matrix[i, j] + vector[j];
+#if DEBUG
+                    if (Double.IsNaN(result[i, j]))
+                        throw new ArgumentException();
+#endif
                 }
             }
 
@@ -366,6 +426,11 @@ namespace ReinforcementLearning
             {
                 for (int j = 0; j < cols; j++)
                 {
+
+#if DEBUG
+                    if (Double.IsNaN(matrix[i, j] + vector[i]))
+                        throw new ArgumentException();
+#endif
                     result[i, j] = matrix[i, j] + vector[i];
                 }
             }
@@ -384,6 +449,11 @@ namespace ReinforcementLearning
             {
                 for (int j = 0; j < cols; j++)
                 {
+
+#if DEBUG
+                    if (Double.IsNaN(matrix[i, j] + value))
+                        throw new ArgumentException();
+#endif
                     result[i, j] = matrix[i, j] + value;
                 }
             }
@@ -406,7 +476,34 @@ namespace ReinforcementLearning
             {
                 for (int j = 0; j < cols; j++)
                 {
+#if DEBUG
+                    if (Double.IsNaN(matrix[i, j] * array[i]))
+                        throw new ArgumentException();
+#endif
                     result[i, j] = matrix[i, j] * array[i];
+                }
+            }
+
+            return result;
+        }
+
+        public static double[,] MultiplyMatrixByArrayPerColumn(double[,] matrix, double[] array)
+        {
+            int rows = matrix.GetLength(0);
+            int cols = matrix.GetLength(1);
+
+            if (array.Length != cols)
+            {
+                throw new ArgumentException("Length of array must match the number of rows in the matrix.");
+            }
+
+            double[,] result = new double[rows, cols];
+            
+            for(int i = 0; i < matrix.GetLength(0); i++)
+            {
+                for(int j = 0; j < matrix.GetLength(1); j++)
+                {
+                    result[i, j] = matrix[i, j] * array[j];
                 }
             }
 
@@ -448,15 +545,36 @@ namespace ReinforcementLearning
 
         public static double[,] SoftMax(double[,] _matrix)
         {
-            double[,] softmax = new double[_matrix.GetLength(0), _matrix.GetLength(1)];
+            int rows = _matrix.GetLength(0);
+            int cols = _matrix.GetLength(1);
+            double[,] softmax = new double[rows, cols];
 
-            for (int y = 0; y < _matrix.GetLength(1); y++)
+            for (int y = 0; y < cols; y++)
             {
-                double expForBatch = (double)Enumerable.Range(0, _matrix.GetLength(0)).Select(i => Math.Exp(_matrix[i, y])).Sum();
-
-                for (int x = 0; x < _matrix.GetLength(0); x++)
+                double maxVal = double.MinValue;
+                for (int x = 0; x < rows; x++)
                 {
-                    softmax[x, y] = (double)Math.Exp(_matrix[x, y]) / expForBatch;
+                    if (_matrix[x, y] > maxVal)
+                        maxVal = _matrix[x, y];
+                }
+
+                double sumExp = 0.0;
+                for (int x = 0; x < rows; x++)
+                {
+                    // Clipping the exponent to avoid NaN
+                    double expValue = Math.Exp(Math.Max(-700, Math.Min(700, _matrix[x, y] - maxVal)));
+                    sumExp += expValue;
+                }
+
+                for (int x = 0; x < rows; x++)
+                {
+                    double expValue = Math.Exp(Math.Max(-700, Math.Min(700, _matrix[x, y] - maxVal)));
+                    softmax[x, y] = expValue / sumExp;
+
+#if DEBUG
+                    if (Double.IsNaN(softmax[x, y]))
+                        throw new ArgumentException();
+#endif
                 }
             }
 
@@ -478,6 +596,13 @@ namespace ReinforcementLearning
 
         public static List<double> SubtractFromValue(double value, List<double> inputList)
         {
+#if DEBUG
+            foreach(var x in inputList)
+            {
+                if (Double.IsNaN(value - x))
+                    throw new ArgumentException();
+            }
+#endif
             return inputList.Select(x => value - x).ToList();
         }
 
@@ -524,7 +649,12 @@ namespace ReinforcementLearning
             {
                 for (int j = 0; j < cols; j++)
                 {
+
                     result[i, j] = matrix[i, j] - vector[j];
+#if DEBUG
+                    if (Double.IsNaN(result[i, j]))
+                        throw new ArgumentException();
+#endif
                 }
             }
 
@@ -543,6 +673,10 @@ namespace ReinforcementLearning
                 for (int j = 0; j < cols; j++)
                 {
                     result[i, j] = Math.Pow(matrix[i, j], _power);
+#if DEBUG
+                    if (Double.IsNaN(result[i, j]))
+                        throw new ArgumentException();
+#endif
                 }
             }
 
@@ -558,6 +692,11 @@ namespace ReinforcementLearning
                 for (int y = 0; y < _vector.GetLength(1); y++)
                 {
                     euclideanSum += Math.Pow(_vector[x, y], 2);
+
+#if DEBUG
+                    if (Double.IsNaN(euclideanSum))
+                        throw new ArgumentException();
+#endif
                 }
             }
 

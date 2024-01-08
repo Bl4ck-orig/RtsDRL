@@ -8,7 +8,7 @@ namespace ReinforcementLearning
         public int inputSize;
         public int outputSize;
         public int batchSize;
-        public bool normalizedClipping;
+        public double minZeroConvergeThreshold;
         public int hiddenLayerNodesAmount;
         public double learnRate;
         public InputLayer inputLayer;
@@ -32,7 +32,7 @@ namespace ReinforcementLearning
             inputSize = neuralNetworkValues.inputSize;
             outputSize = neuralNetworkValues.outputSize;
             batchSize = neuralNetworkValues.batchSize;
-            normalizedClipping = neuralNetworkValues.normalizedClipping;
+            minZeroConvergeThreshold = neuralNetworkValues.minZeroConvergeThreshold;
             hiddenLayerNodesAmount = neuralNetworkValues.hiddenLayerNodesAmount;
             inputLayer = neuralNetworkValues.inputLayer;
             hiddenLayer = neuralNetworkValues.hiddenLayer;

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Xml.Linq;
 
 namespace ReinforcementLearning
 {
@@ -75,10 +74,17 @@ namespace ReinforcementLearning
         private void BackPropagateLayerBias()
         {
             changeInBias = new double[bias.GetLength(0), bias.GetLength(1)];
+
+           
             for (int i = 0; i < bias.GetLength(0); i++)
-                changeInBias[i, 0] = oneOverBatchSize *
-                    Enumerable.Range(0, changeInLayerError.GetLength(0))
-                        .Select(x => changeInLayerError[x, i]).Sum();
+            {
+                double sum = 0f;
+                for (int j = 0; j < changeInLayerError.GetLength(1); j++)
+                {
+                    sum += changeInLayerError[i, j];
+                }
+                changeInBias[i, 0] = sum * oneOverBatchSize;
+            }
         }
         #endregion -----------------------------------------------------------------
 
@@ -112,30 +118,58 @@ namespace ReinforcementLearning
             bias = bias.Subtract(changeInBias.Multiply(_learningRate));
         }
 
+        public void HandleNan(double _minZeroConvergeThreshold, double _maxThreshold)
+        {
+            for (int x = 0; x < weights.GetLength(0); x++)
+            {
+                for (int y = 0; y < weights.GetLength(1); y++)
+                {
+                    weights[x, y] = FixNan(weights[x, y], _minZeroConvergeThreshold, _maxThreshold);
+                }
+            }
+
+            for (int x = 0; x < weights.GetLength(0); x++)
+            {
+                bias[x, 0] = FixNan(bias[x, 0], _minZeroConvergeThreshold, _maxThreshold);
+            }
+        }
+
+        private double FixNan(double _value, double _minZeroConvergeThreshold, double _maxThreshold)
+        {
+            if (_value < _minZeroConvergeThreshold && _value > -_minZeroConvergeThreshold)
+                return 0f;
+            if (Double.IsNaN(_value))
+                return 0f;
+            if (Double.IsNegativeInfinity(_value))
+                return -_maxThreshold;
+            if (Double.IsPositiveInfinity(_value))
+                return _maxThreshold;
+            return _value;
+        }
+
         public void ClipWeightsAndBiases(double _maxThreshold)
         {
             for (int x = 0; x < weights.GetLength(0); x++)
             {
                 for(int y = 0; y < weights.GetLength(1); y++)
                 {
-                    double weightValue = weights[x, y];
-
-                    if (weightValue > _maxThreshold)
-                        weights[x, y] = _maxThreshold;
-                    if(weightValue < -_maxThreshold)
-                        weights[x, y] = -_maxThreshold;
+                    weights[x, y] = ClipWeightsAndBiasesValue(weights[x, y], _maxThreshold);
                 }
             }
 
             for (int x = 0; x < weights.GetLength(0); x++)
             {
-                double biasValue = bias[x, 0];
-
-                if (biasValue > _maxThreshold)
-                    bias[x, 0] = _maxThreshold;
-                if (biasValue < -_maxThreshold)
-                    bias[x, 0] = -_maxThreshold;
+                bias[x, 0] = ClipWeightsAndBiasesValue(bias[x, 0], _maxThreshold);
             }
+        }
+
+        private double ClipWeightsAndBiasesValue(double _value, double _maxThreshold)
+        {
+            if (_value > _maxThreshold)
+                return _maxThreshold;
+            if (_value < -_maxThreshold)
+                return -_maxThreshold;
+            return _value;
         }
         #endregion -----------------------------------------------------------------
     }
