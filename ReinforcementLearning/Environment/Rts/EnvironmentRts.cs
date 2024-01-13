@@ -17,19 +17,19 @@ namespace ReinforcementLearning
         public const int MIN_AMOUNT_OF_GHOULS_FOR_DEFENSIVE_TRIBE_TAKE_OVER = 2;
         public const int MIN_AMOUNT_OF_GHOULS_FOR_ATTACK = 5;
 
-        private const double DEFEAT_REWARD = -1.0f;
-        private const double VICTORY_REWARD = 1.0f;
+        private const double DEFEAT_REWARD = -10.0f;
+        private const double VICTORY_REWARD = 10.0f;
 
-        private const double GHOULS_IN_DANGER_INCREASE_CHANCE = 0.1f;
-        private const double GHOULS_IN_DANGER_KILL_CHANCE = 0.15f;
+        private const double GHOULS_IN_DANGER_INCREASE_CHANCE = 0.2f;
+        private const double GHOULS_IN_DANGER_KILL_CHANCE = 0.1f;
         private const double GHOULS_START_HUNGRY_CHANCE_PER_GHOUL = 0.1f;
-        private const double REDUCE_GHOULS_IN_DANGER_CHANCE_PER_DEFENDING_GHOUL = 0.15f;
-        private const double REDUCE_GHOULS_IN_DANGER_CHANCE_PER_DEFENDING_GHOUL_WITH_WEAPON = 0.17f;
+        private const double REDUCE_GHOULS_IN_DANGER_CHANCE_PER_DEFENDING_GHOUL = 0.05f;
+        private const double REDUCE_GHOULS_IN_DANGER_CHANCE_PER_DEFENDING_GHOUL_WITH_WEAPON = 0.12f;
         private const double INCREASE_WEAPONS_CHANCE_PER_WORKING_GHOUL = 0.25f;
         private const double INCREASE_TRIBES_CHANCE_PER_BUILDING_GHOUL = 0.05f;
         private const double INCREASE_WORKSHOP_CHANCE_PER_BUILDING_GHOUL = 0.05f;
-        private const double REPRODUCTION_CHANCE_PER_TRIBE = 0.05f;
-        private const double REPRODUCTION_CHANCE_REDUCTION_PER_UNBALANCED_TRIBE = 0.02f;
+        private const double REPRODUCTION_CHANCE_PER_TRIBE = 0.025f;
+        private const double REPRODUCTION_CHANCE_REDUCTION_PER_UNBALANCED_TRIBE = 0.01f;
         private const double INCREASE_FOODS_CHANCE_PER_GHOUL = 0.02f;
         private const double INCREASE_FOODS_CHANCE_PER_TRIBE = 0.05f;
         private const double DECREASE_ATTACKING_GHOUL_BY_DEATH_CHANCE = 0.1f;
@@ -458,7 +458,7 @@ namespace ReinforcementLearning
             if (Variables[EEnemyInput.TotalGhouls].Value >= MAX_GHOULS)
                 return false;
 
-            if (_prng.NextDouble() < Variables[EEnemyInput.TribesDefensive].Value * REPRODUCTION_CHANCE_PER_TRIBE -
+            if (_prng.NextDouble() > Variables[EEnemyInput.TribesDefensive].Value * REPRODUCTION_CHANCE_PER_TRIBE -
                 Variables[EEnemyInput.UnbalancedTribes].Value * REPRODUCTION_CHANCE_REDUCTION_PER_UNBALANCED_TRIBE)
                 return false;
 
