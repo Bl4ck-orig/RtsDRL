@@ -11,15 +11,16 @@ namespace ReinforcementLearning
     internal class Program
     {
         private static string fileNameNoExt = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Model";
-        private static string fileName = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\3_Model_0_2024_01_10-09_12.bin";
+        private static string fileName = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Model_0_2024_01_16-16_36.bin";
         private static string fileNameReward = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Rewards.txt";
 
         private static int batchSize = 1024;
         private static double learnRate = 0.0001f;
-        private static double maxMinutes = 360f;
+        private static double maxMinutes = 480f;
         private static int timeStepLimit = 100;
         private static double exploration = 0.15f;
-        private static double gradientClippingThreshold = 150f;
+        private static int epochs = 80;
+        private static double gradientClippingThreshold = 600f;
         private static double minZeroConvergeThreshold = 0.00001f;
         private static bool fixNan = false;
         private static bool clipValuesFirst = false;
@@ -85,7 +86,8 @@ namespace ReinforcementLearning
                 _gradientClippingThreshold: gradientClippingThreshold,
                 _fixNan: fixNan,
                 _clipValuesFirst: clipValuesFirst,
-                _minZeroConvergeThreshold: minZeroConvergeThreshold);
+                _minZeroConvergeThreshold: minZeroConvergeThreshold,
+                _epochs: epochs);
 
             Nfq nfq = _nn == null ? new Nfq(nfqArgs) : new Nfq(nfqArgs, _nn);
 
@@ -164,8 +166,10 @@ namespace ReinforcementLearning
         {
             var testModelResult = TestModelState(_filename, _seed, _state);
             var dummyResult = TestModelStateDummy(_seed, _state);
-            Console.WriteLine("[DUMMY] Cumulative Reward: " + dummyResult.CumulativeReward + "\t Final Reward: " + dummyResult.LastReward);
-            Console.WriteLine("[TEST]  Cumulative Reward: " + testModelResult.CumulativeReward + "\t Final Reward: " + testModelResult.LastReward);
+            var randomResult = TestModelStateRandom(_seed, _state);
+            Console.WriteLine("[NO OP] Cumulative Reward: " + dummyResult.CumulativeReward + "\t Final Reward: " + dummyResult.LastReward);
+            Console.WriteLine("[RANDOM]  Cumulative Reward: " + randomResult.CumulativeReward + "\t Final Reward: " + randomResult.LastReward);
+            Console.WriteLine("[RESULT]  Cumulative Reward: " + testModelResult.CumulativeReward + "\t Final Reward: " + testModelResult.LastReward);
         }
 
 
@@ -207,9 +211,6 @@ namespace ReinforcementLearning
 
         private static (double CumulativeReward, double LastReward) TestModelStateDummy(int _seed, Dictionary<EEnemyInput, double> _state)
         {
-            Random prngTest = new Random();
-            GreedyStrategy greedy = new GreedyStrategy();
-
             EnvironmentRts env = new EnvironmentRts(new List<Dictionary<EEnemyInput, double>>() { _state });
 
             env.Reset(true, true, _seed, timeStepLimit);
@@ -231,5 +232,29 @@ namespace ReinforcementLearning
             return (cumulativeReward, result.Reward);
         }
 
+        private static (double CumulativeReward, double LastReward) TestModelStateRandom(int _seed, Dictionary<EEnemyInput, double> _state)
+        {
+            Random prng = new Random();
+            EnvironmentRts env = new EnvironmentRts(new List<Dictionary<EEnemyInput, double>>() { _state });
+
+            env.Reset(true, true, _seed, timeStepLimit);
+
+            double cumulativeReward = 0f;
+            bool done = false;
+
+            StepResult<double[]> result = default;
+            int operationsAmount = Enum.GetValues(typeof(EEnemyOperation)).Cast<EEnemyOperation>().Count();
+
+            while (!done)
+            {
+                result = env.Step(prng.Next(operationsAmount));
+
+                cumulativeReward += result.Reward;
+
+                done = result.IsTruncated || result.Done;
+            }
+
+            return (cumulativeReward, result.Reward);
+        }
     }
 }

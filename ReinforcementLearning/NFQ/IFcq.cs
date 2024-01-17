@@ -4,6 +4,8 @@
     {
         double[,] GetOutputMatrix(double[,] _inputs);
 
+        double[,] GetOutputMatrixDetached(double[,] _inputs);
+
         double[] GetHighestRewardVector(double[,] _inputs);
 
         double[] GetPrediction(double[] _inputs);

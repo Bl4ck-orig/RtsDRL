@@ -201,7 +201,8 @@ namespace ReinforcementLearning
             List<double> isTerminals = experiences.Select(x => x.IsFailure).ToList();
 
             double[,] nextStateFeatureMatrix = Commons.ToMatrix(nextStates).Transpose(); 
-            double[,] maxAQSp = onlineModel.GetOutputMatrix(nextStateFeatureMatrix);
+
+            double[,] maxAQSp = onlineModel.GetOutputMatrixDetached(nextStateFeatureMatrix); 
             double[] oneMinusTerminals = Commons.SubtractFromValue(1.0f, isTerminals).ToArray();
             double[,] targetQS_a = Commons.MultiplyMatrixByArrayPerColumn(maxAQSp, oneMinusTerminals);
             double[,] targetQS_b = Commons.Multiply(targetQS_a, gamma);
