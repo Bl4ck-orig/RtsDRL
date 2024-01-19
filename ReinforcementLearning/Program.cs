@@ -11,25 +11,28 @@ namespace ReinforcementLearning
     internal class Program
     {
         private static string fileNameNoExt = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Model";
-        private static string fileName = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Model_0_2024_01_16-16_36.bin";
+        private static string fileName = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\11_Model_0_2024_01_19-17_24.bin";
         private static string fileNameReward = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Rewards.txt";
 
         private static int batchSize = 1024;
         private static double learnRate = 0.0001f;
-        private static double maxMinutes = 480f;
+        private static double maxMinutes = 120f;
         private static int timeStepLimit = 100;
-        private static double exploration = 0.15f;
-        private static int epochs = 80;
+        private static double exploration = 0.21f;
+        private static int epochs = 60;
         private static double gradientClippingThreshold = 600f;
         private static double minZeroConvergeThreshold = 0.00001f;
         private static bool fixNan = false;
+        private static double gamma = 1f;
         private static bool clipValuesFirst = false;
+        private static int hiddenLayerNodesAmount = 50;
+        private static int hiddenLayersAmount = 3;
 
         static void Main(string[] args)
         {
             //RunQLearning();
-            //ContinueNfq(fileName);
-            RunNfq();
+            ContinueNfq(fileName);
+            //RunNfq();
             //ExportRewardData(fileNameReward);
             //TestModel(fileName);
             //TestModelFull(fileName);
@@ -87,8 +90,11 @@ namespace ReinforcementLearning
                 _fixNan: fixNan,
                 _clipValuesFirst: clipValuesFirst,
                 _minZeroConvergeThreshold: minZeroConvergeThreshold,
-                _epochs: epochs);
-
+                _epochs: epochs,
+                _hiddenLayerNodesAmount: hiddenLayerNodesAmount,
+                _hiddenLayersAmount: hiddenLayersAmount,
+                _gamma: gamma);
+            
             Nfq nfq = _nn == null ? new Nfq(nfqArgs) : new Nfq(nfqArgs, _nn);
 
             NfqResult result = nfq.Train();
@@ -139,39 +145,49 @@ namespace ReinforcementLearning
         {
             int i = 1;
 
+            var states = StartStates.StartStatesByLabel;
+
             Console.WriteLine(_filename + "\n\n");
-            Console.WriteLine("Standard");
-            TestState(_filename, i++, StartStates.initialStateStandard);
-            Console.WriteLine("Late Game");
-            TestState(_filename, i++, StartStates.initialStateLateGame);
-            Console.WriteLine("Late Game Defending");
-            TestState(_filename, i++, StartStates.initialStateLateGameDefending);
-            Console.WriteLine("Late Game Attacking");
-            TestState(_filename, i++, StartStates.initialStateLateGameAttacking);
-            Console.WriteLine("Mid Game");
-            TestState(_filename, i++, StartStates.initialStateMidGame);
-            Console.WriteLine("Should Defend");
-            TestState(_filename, i++, StartStates.shouldTryDefend);
-            Console.WriteLine("Should Attack");
-            TestState(_filename, i++, StartStates.shouldAttack);
-            Console.WriteLine("Should Eat");
-            TestState(_filename, i++, StartStates.shouldEat);
-            Console.WriteLine("Should balance tribes");
-            TestState(_filename, i++, StartStates.shouldTryBalanceTribes);
+
+            double modelTotalReward = 0;
+            double noOpTotalReward = 0;
+            double randomTotalReward = 0;
+
+            foreach (var state in states)
+            {
+                Console.WriteLine(state.Key);
+                var nextResult = TestState(_filename, i++, StartStates.initialStateStandard);
+
+                modelTotalReward += nextResult.ModelLastReward;
+                noOpTotalReward += nextResult.NoOpLastReward;
+                randomTotalReward += nextResult.RandomLastReward;
+
+                Console.WriteLine("\t[RESULT]  Final Reward: " + nextResult.ModelLastReward);
+                Console.WriteLine("\t[NO OP] Final Reward: " + nextResult.NoOpLastReward);
+                Console.WriteLine("\t[RANDOM]  Final Reward: " + nextResult.RandomLastReward + "\n");
+            }
+
+            Console.WriteLine("\n\nTotal:");
+            Console.WriteLine("\t[RESULT]  Final Reward: " + (modelTotalReward / states.Count));
+            Console.WriteLine("\t[NO OP] Final Reward: " + (noOpTotalReward / states.Count));
+            Console.WriteLine("\t[RANDOM]  Final Reward: " + (randomTotalReward / states.Count));
 
             Console.ReadKey();
         }
 
-        private static void TestState(string _filename, int _seed, Dictionary<EEnemyInput, double> _state)
+        private static TestStateResult TestState(string _filename, int _seed, Dictionary<EEnemyInput, double> _state)
         {
-            var testModelResult = TestModelState(_filename, _seed, _state);
+            var modelResult = TestModelState(_filename, _seed, _state);
             var dummyResult = TestModelStateDummy(_seed, _state);
             var randomResult = TestModelStateRandom(_seed, _state);
-            Console.WriteLine("[NO OP] Cumulative Reward: " + dummyResult.CumulativeReward + "\t Final Reward: " + dummyResult.LastReward);
-            Console.WriteLine("[RANDOM]  Cumulative Reward: " + randomResult.CumulativeReward + "\t Final Reward: " + randomResult.LastReward);
-            Console.WriteLine("[RESULT]  Cumulative Reward: " + testModelResult.CumulativeReward + "\t Final Reward: " + testModelResult.LastReward);
-        }
 
+            return new TestStateResult(modelResult.CumulativeReward, 
+                modelResult.LastReward,
+                dummyResult.CumulativeReward,
+                dummyResult.LastReward,
+                randomResult.CumulativeReward,
+                randomResult.LastReward);
+        }
 
         private static (double CumulativeReward, double LastReward) TestModelState(string _filename, int _seed, Dictionary<EEnemyInput, double> _state)
         {
@@ -179,6 +195,11 @@ namespace ReinforcementLearning
                 throw new ArgumentException("File name not existant");
 
             TrainingResult trainingResult = Serializer.DeserializeObject(_filename);
+
+            if(trainingResult.gradientMagnitudes != null && trainingResult.gradientMagnitudes.Length > 0)
+            {
+                var reversedMagnitudes = trainingResult.gradientMagnitudes.Reverse().ToList();
+            }
 
             NeuralNetwork nn = new NeuralNetwork(trainingResult);
 
@@ -197,9 +218,8 @@ namespace ReinforcementLearning
             while (!done)
             {
                 var action = greedy.SelectAction(env.State, nn, prngTest);
-                result = env.Step(action);
 
-                //Console.WriteLine((EEnemyOperation)action);
+                result = env.Step(action);
 
                 cumulativeReward += result.Reward;
 

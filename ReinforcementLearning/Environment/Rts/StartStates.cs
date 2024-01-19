@@ -5,6 +5,25 @@ namespace ReinforcementLearning
     public static class StartStates
     {
 
+        public static Dictionary<string, Dictionary<EEnemyInput, double>> StartStatesByLabel
+        {
+            get
+            {
+                return new Dictionary<string, Dictionary<EEnemyInput, double>>()
+                {
+                    { "InitialStateStandard", initialStateStandard},
+                    { "InitialStateLateGame", initialStateLateGame},
+                    { "InitialStateLateGameDefending", initialStateLateGameDefending},
+                    { "InitialStateLateGameAttacking", initialStateLateGameAttacking},
+                    { "InitialStateMidGame", initialStateMidGame},
+                    { "ShouldTryDefend", shouldTryDefend},
+                    { "ShouldAttack", shouldAttack},
+                    { "ShouldEat", shouldEat},
+                    { "ShouldTryBalanceTribes", shouldTryBalanceTribes},
+                };                
+            }
+        }
+
         public static Dictionary<EEnemyInput, double> initialStateStandard = new Dictionary<EEnemyInput, double>()
             {
                 { EEnemyInput.TotalGhouls, 10.0f },

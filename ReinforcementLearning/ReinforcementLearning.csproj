@@ -87,6 +87,7 @@
     <Compile Include="NerualNetwork\OutputLayer.cs" />
     <Compile Include="NerualNetwork\ReluLayer.cs" />
     <Compile Include="NeuralNetworkValues.cs" />
+    <Compile Include="TestStateResult.cs" />
     <Compile Include="TrainingResult.cs" />
     <Compile Include="Exploration\Exploration.cs" />
     <Compile Include="NFQ\EGreedyStrategy.cs" />

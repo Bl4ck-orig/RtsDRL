@@ -12,6 +12,7 @@ namespace ReinforcementLearning
         private int batchSize;
         private int epochs;
         private double gamma;
+        private double currentGamma;
         private Environment<double[]> environment;
         private int timeStepLimit;
         private int seed;
@@ -112,6 +113,7 @@ namespace ReinforcementLearning
                 double[] state = environment.Reset(timeStepLimit != 0, true, prng, timeStepLimit);
                 bool isTerminal = false;
                 bool nanOccured = false;
+                currentGamma = gamma;
                 episodeRewards.Add(0.0f);
                 episodeTimeStep.Add(0);
                 episodeExploration.Add(0);
@@ -183,8 +185,10 @@ namespace ReinforcementLearning
                 action,
                 stepResult.Reward,
                 stepResult.NextState,
-                isFailure ? 1.0f : 0.0f);
+                isFailure ? 1.0f : 0.0f,
+                currentGamma);
 
+            currentGamma *= currentGamma;
             experiences.Add(experience);
             episodeRewards[episodeRewards.Count - 1] += stepResult.Reward;
             episodeTimeStep[episodeTimeStep.Count - 1] += 1;
@@ -199,13 +203,14 @@ namespace ReinforcementLearning
             List<double> rewards = experiences.Select(x => x.Reward).ToList();
             List<double[]> nextStates = experiences.Select(x => x.NextState).ToList();
             List<double> isTerminals = experiences.Select(x => x.IsFailure).ToList();
+            double[] gammas = experiences.Select(x => x.Gamma).ToArray();
 
             double[,] nextStateFeatureMatrix = Commons.ToMatrix(nextStates).Transpose(); 
 
             double[,] maxAQSp = onlineModel.GetOutputMatrixDetached(nextStateFeatureMatrix); 
             double[] oneMinusTerminals = Commons.SubtractFromValue(1.0f, isTerminals).ToArray();
             double[,] targetQS_a = Commons.MultiplyMatrixByArrayPerColumn(maxAQSp, oneMinusTerminals);
-            double[,] targetQS_b = Commons.Multiply(targetQS_a, gamma);
+            double[,] targetQS_b = Commons.MultiplyMatrixByArrayPerColumn(targetQS_a, gammas);
             double[,] targetQS = Commons.AddVectorToMatrix(targetQS_b, rewards.ToArray());  
 
             double[,] stateFeatureMatrix = Commons.ToMatrix(states).Transpose(); 
