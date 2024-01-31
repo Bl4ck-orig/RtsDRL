@@ -36,6 +36,10 @@ namespace ReinforcementLearning
         private const double DECREASE_UNUSED_AGRESSIVE_TRIBES_CHANCE_PER_ATTACKING_GHOUL = 0.005f;
         private const double DECREASE_UNUSED_AGRESSIVE_TRIBES_CHANCE_PER_ATTACKING_WITH_WEAPON_GHOUL = 0.0075f;
 
+        // Das attack modell wurde trainiert auf diese konstanten:
+        //private const double DECREASE_UNUSED_AGRESSIVE_TRIBES_CHANCE_PER_ATTACKING_GHOUL = 0.5f;
+        //private const double DECREASE_UNUSED_AGRESSIVE_TRIBES_CHANCE_PER_ATTACKING_WITH_WEAPON_GHOUL = 0.75f;
+
         public override int ObservationSpaceSize => State.Length;
 
         public override double[] State { get => GetStateVector(); protected set => SetState(value); }

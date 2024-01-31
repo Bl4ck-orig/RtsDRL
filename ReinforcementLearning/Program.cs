@@ -1,5 +1,4 @@
-﻿using ReinforcementLearning.Training;
-using ReinforcementLearning.Utils;
+﻿using ReinforcementLearning.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,43 +9,64 @@ namespace ReinforcementLearning
 {
     internal class Program
     {
-        private static string fileNameNoExt = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Model";
-        private static string fileName = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\11_Model_0_2024_01_19-17_24.bin";
-        private static string fileNameReward = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Rewards.txt";
+        private static string fileNameNoExt = Directory.GetCurrentDirectory() + "\\Models\\Model";
+        private static string fileName = Directory.GetCurrentDirectory() + "\\Models" +
+            "\\1st_Model.bin";
+        private static string fileName1st = Directory.GetCurrentDirectory() + "\\Models" +
+            "\\1st_Model.bin";
+        private static string fileName2nd = Directory.GetCurrentDirectory() + "\\Models" +
+            "\\2nd_Model.bin";
+        private static string fileName3rd = Directory.GetCurrentDirectory() + "\\Models" +
+            "\\3rd_Model.bin";
+        private static string fileName4th = Directory.GetCurrentDirectory() + "\\Models" +
+            "\\4th_Model.bin";
+        private static string fileNameAttack = Directory.GetCurrentDirectory() + "\\Models" +
+            "\\AttackModel.bin";
+
+        private static string fileNameReward = Directory.GetCurrentDirectory() + "\\Data" +
+            "\\4th_Rewards.txt";
+        private static string fileNameMagnitudes = Directory.GetCurrentDirectory() + "\\Data" +
+            "\\4th_Magnitudes.txt";
 
         private static int batchSize = 1024;
         private static double learnRate = 0.0001f;
-        private static double maxMinutes = 120f;
+        private static double maxMinutes = 480f;
         private static int timeStepLimit = 100;
-        private static double exploration = 0.21f;
+        private static double exploration = 0.15f;
         private static int epochs = 60;
         private static double gradientClippingThreshold = 600f;
         private static double minZeroConvergeThreshold = 0.00001f;
         private static bool fixNan = false;
         private static double gamma = 1f;
         private static bool clipValuesFirst = false;
-        private static int hiddenLayerNodesAmount = 50;
+        private static int hiddenLayerNodesAmount = 60;
         private static int hiddenLayersAmount = 3;
 
         static void Main(string[] args)
         {
-            //RunQLearning();
-            ContinueNfq(fileName);
+            /*
+             * Die folgenden beiden Befehle können auskommentiert werden, und den Lernprozess zu starten oder fortzuführen.
+             */
+            //ContinueNfq(fileName);
             //RunNfq();
-            //ExportRewardData(fileNameReward);
-            //TestModel(fileName);
-            //TestModelFull(fileName);
+
+            /*
+             * Die folgenden beiden Befehle können auskommentiert werden, und die Reward oder Magnitude Daten zu exportieren.
+             * Diese können in dem "PlotResult" Projekt geplottet werden. So wurden die Daten exportiert für die Plots aus dem E-Learning Dokument.
+             */
+            //ExportRewardData(fileName, fileNameReward);
+            //ExportMagnitudeData(fileName, fileNameMagnitudes);
+
+            /*
+             * Die folgenden beiden Methoden dienen als Evaluationsmethoden.
+             */
+            TestModelFull(fileName4th);
         }
 
-        private static void RunQLearning()
-        {
-            QLearningResult qLearningResult = QLearning.Learn(new QLearningArgs(new EnvironemntFrozenLake()));
-
-            Console.WriteLine("\n" + qLearningResult.ToString());
-
-            Console.ReadLine();
-        }
-
+        /// <summary>
+        /// Setzt das Lernen des Models fort
+        /// </summary>
+        /// <param name="_filename">Dateipfad des Models</param>
         private static void ContinueNfq(string _filename)
         {
             TrainingResult trainingResult = Serializer.DeserializeObject(_filename);
@@ -56,6 +76,10 @@ namespace ReinforcementLearning
             RunNfq(nn);
         }
 
+        /// <summary>
+        /// Starte den Lernprozess
+        /// </summary>
+        /// <param name="_nn"></param>
         private static void RunNfq(NeuralNetwork _nn = null)
         {
             InputManager.ListenInputs();
@@ -110,40 +134,46 @@ namespace ReinforcementLearning
             Console.ReadKey();
         }
 
-        private static void ExportRewardData(string _filename)
+        /// <summary>
+        /// Gradient Längen des Lernprozesses exportieren.
+        /// </summary>
+        /// <param name="_filename">Dateipfad der Import Datei</param>
+        /// <param name="_newFile">Dateipfad der Export Datei </param>
+        /// <exception cref="ArgumentException"></exception>
+        private static void ExportMagnitudeData(string _filename, string _newFile)
         {
             if (!File.Exists(_filename))
                 throw new ArgumentException("File name not existant");
 
             TrainingResult _trainingResult = Serializer.DeserializeObject(_filename);
 
-            DataExporter.ExportData(_trainingResult.episodeRewards, _filename);
+            DataExporter.ExportData(_trainingResult.gradientMagnitudes, _newFile);
         }
 
-        private static void TestModel(string _filename)
+        /// <summary>
+        /// Rewards des Lernprozesses exportieren.
+        /// </summary>
+        /// <param name="_filename">Dateipfad der Import Datei</param>
+        /// <param name="_newFile">Dateipfad der Export Datei </param>
+        /// <exception cref="ArgumentException"></exception>
+        private static void ExportRewardData(string _filename, string _newFile)
         {
             if (!File.Exists(_filename))
                 throw new ArgumentException("File name not existant");
 
-            TrainingResult trainingResult = Serializer.DeserializeObject(_filename);
+            TrainingResult _trainingResult = Serializer.DeserializeObject(_filename);
 
-            NeuralNetwork nn = new NeuralNetwork(trainingResult);
-
-            Random prng = new Random();
-            GreedyStrategy greedy = new GreedyStrategy();
-
-            Console.WriteLine("Should defend: " + (EEnemyOperation)greedy.SelectAction(StartStates.shouldTryDefend.Values.ToArray(), nn, prng));
-            Console.WriteLine("Should attack: " + (EEnemyOperation)greedy.SelectAction(StartStates.shouldAttack.Values.ToArray(), nn, prng));
-            Console.WriteLine("Should eat: " + (EEnemyOperation)greedy.SelectAction(StartStates.shouldEat.Values.ToArray(), nn, prng));
-            Console.WriteLine("Should balance tribes: " + (EEnemyOperation)greedy.SelectAction(StartStates.shouldTryBalanceTribes.Values.ToArray(), nn, prng));
-
-            Console.ReadKey();
+            DataExporter.ExportData(_trainingResult.episodeRewards, _newFile);
         }
 
-
+        /// <summary>
+        /// Tested ein Model auf den erzielten Reward anhand einer durchlaufenen Episode. Zum Vergleich wird ein Model,
+        /// welches nichts tut mit dem Namen "NO OP" und ein Model welches zufällige Entscheidungen trifft "RANDOM" benutzt.
+        /// </summary>
+        /// <param name="_filename"></param>
         private static void TestModelFull(string _filename)
         {
-            int i = 1;
+            int seed = 31853;
 
             var states = StartStates.StartStatesByLabel;
 
@@ -156,7 +186,7 @@ namespace ReinforcementLearning
             foreach (var state in states)
             {
                 Console.WriteLine(state.Key);
-                var nextResult = TestState(_filename, i++, StartStates.initialStateStandard);
+                var nextResult = TestState(_filename, seed++, StartStates.initialStateStandard);
 
                 modelTotalReward += nextResult.ModelLastReward;
                 noOpTotalReward += nextResult.NoOpLastReward;
@@ -199,6 +229,7 @@ namespace ReinforcementLearning
             if(trainingResult.gradientMagnitudes != null && trainingResult.gradientMagnitudes.Length > 0)
             {
                 var reversedMagnitudes = trainingResult.gradientMagnitudes.Reverse().ToList();
+                var reversedRewards = trainingResult.episodeRewards.Reverse().ToList();
             }
 
             NeuralNetwork nn = new NeuralNetwork(trainingResult);
@@ -267,7 +298,9 @@ namespace ReinforcementLearning
 
             while (!done)
             {
-                result = env.Step(prng.Next(operationsAmount));
+                var action = prng.Next(operationsAmount);
+
+                result = env.Step(action);
 
                 cumulativeReward += result.Reward;
 

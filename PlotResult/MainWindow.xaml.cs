@@ -4,18 +4,7 @@ using OxyPlot.Series;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace PlotResult
 {
@@ -28,24 +17,75 @@ namespace PlotResult
 
         public MainWindow()
         {
-            string fileName = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\Model_0_2023_12_10-09_22.bin";
+            string fileName = Directory.GetCurrentDirectory() + "\\Data\\4th_Rewards.txt";
 
             if (!File.Exists(fileName))
                 throw new ArgumentException("File name not existant");
 
             InitializeComponent();
-            MyPlotModel = CreatePlotModel(DataImporter.ImportData(fileName));
+            //MyPlotModel = CreatePlotModelMagnitudes(DataImporter.ImportData(fileName), "4th",  1000);
+            MyPlotModel = CreatePlotModelRewards(DataImporter.ImportData(fileName), "4th", 2500);
             DataContext = this;
         }
 
-        private PlotModel CreatePlotModel(List<double> dataList)
+        private PlotModel CreatePlotModelMagnitudes(List<double> dataList, string _label, int _overrideLimit = -1)
         {
-            var plotModel = new PlotModel { Title = "Data Plot" };
-            plotModel.Axes.Add(new LinearAxis { Position = AxisPosition.Bottom });
-            plotModel.Axes.Add(new LinearAxis { Position = AxisPosition.Left });
+            int limit = _overrideLimit == -1 ? dataList.Count : _overrideLimit;
+            var plotModel = new PlotModel { Title = _label + " Magnitudes # " + limit };
+
+            // Add the X-axis (Bottom) and set its title
+            var xAxis = new LinearAxis
+            {
+                Position = AxisPosition.Bottom,
+                Title = "Lerniteration" // Replace with your desired title
+            };
+            plotModel.Axes.Add(xAxis);
+
+            // Add the Y-axis (Left) and set its title
+            var yAxis = new LinearAxis
+            {
+                Position = AxisPosition.Left,
+                Title = "Gradient Länge", // Replace with your desired title
+            };
+            plotModel.Axes.Add(yAxis);
+
             var lineSeries = new LineSeries();
 
-            for (int i = 0; i < dataList.Count; i++)
+            for (int i = 0; i < limit; i++)
+            {
+                lineSeries.Points.Add(new DataPoint(i, dataList[i]));
+            }
+
+            plotModel.Series.Add(lineSeries);
+
+            return plotModel;
+        }
+
+        private PlotModel CreatePlotModelRewards(List<double> dataList, string _label, int _overrideStart = -1, int _overrideLimit = -1)
+        {
+            int start = _overrideStart == -1 ? 0 : _overrideStart;
+            int limit = _overrideLimit == -1 ? dataList.Count : _overrideLimit;
+            var plotModel = new PlotModel { Title = _label + " Rewards # " + limit };
+
+            // Add the X-axis (Bottom) and set its title
+            var xAxis = new LinearAxis
+            {
+                Position = AxisPosition.Bottom,
+                Title = "Episode" // Replace with your desired title
+            };
+            plotModel.Axes.Add(xAxis);
+
+            // Add the Y-axis (Left) and set its title
+            var yAxis = new LinearAxis
+            {
+                Position = AxisPosition.Left,
+                Title = "Reward", // Replace with your desired title
+            };
+            plotModel.Axes.Add(yAxis);
+
+            var lineSeries = new LineSeries();
+
+            for (int i = start; i < limit; i++)
             {
                 lineSeries.Points.Add(new DataPoint(i, dataList[i]));
             }
