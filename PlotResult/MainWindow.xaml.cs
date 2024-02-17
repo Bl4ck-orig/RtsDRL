@@ -4,6 +4,7 @@ using OxyPlot.Series;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Windows;
 
 namespace PlotResult
@@ -15,9 +16,20 @@ namespace PlotResult
     {
         public PlotModel MyPlotModel { get; private set; }
 
+        private static string _1stMagnitudes = Directory.GetCurrentDirectory() + "\\Data\\1st_Magnitudes.txt";
+        private static string _2ndMagnitudes = Directory.GetCurrentDirectory() + "\\Data\\2nd_Magnitudes.txt";
+        private static string _3rdMagnitudes = Directory.GetCurrentDirectory() + "\\Data\\3rd_Magnitudes.txt";
+        private static string _4thMagnitudes = Directory.GetCurrentDirectory() + "\\Data\\4th_Magnitudes.txt";
+        private static string _4thRewards = Directory.GetCurrentDirectory() + "\\Data\\4th_Rewards.txt";
+
         public MainWindow()
         {
-            string fileName = Directory.GetCurrentDirectory() + "\\Data\\4th_Rewards.txt";
+            /*
+             * Fuer eine exakte Duplizierung der Resultate aus dem E-Learning Dokument 
+             * ist eine Anpassung der Skalierung und Begrenzung noetig.
+             */
+
+            string fileName = _4thRewards;
 
             if (!File.Exists(fileName))
                 throw new ArgumentException("File name not existant");

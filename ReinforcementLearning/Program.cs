@@ -24,9 +24,9 @@ namespace ReinforcementLearning
             "\\AttackModel.bin";
 
         private static string fileNameReward = Directory.GetCurrentDirectory() + "\\Data" +
-            "\\4th_Rewards.txt";
+            "\\Model_Rewards.txt";
         private static string fileNameMagnitudes = Directory.GetCurrentDirectory() + "\\Data" +
-            "\\4th_Magnitudes.txt";
+            "\\Model_Magnitudes.txt";
 
         private static int batchSize = 1024;
         private static double learnRate = 0.0001f;
@@ -58,7 +58,7 @@ namespace ReinforcementLearning
             //ExportMagnitudeData(fileName, fileNameMagnitudes);
 
             /*
-             * Die folgenden beiden Methoden dienen als Evaluationsmethoden.
+             * Die folgende Methode dient als Evaluation.
              */
             TestModelFull(fileName4th);
         }
