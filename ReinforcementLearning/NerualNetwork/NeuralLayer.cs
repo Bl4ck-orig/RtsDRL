@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 
 namespace ReinforcementLearning
 {
@@ -22,6 +21,11 @@ namespace ReinforcementLearning
         protected double[,] changeInWeights;
         protected double[,] changeInBias;
 
+        protected double[,] layerValuesDetached;
+        protected double[,] layerValuesZDetached;
+        protected double[,] weightsDetached;
+        protected double[,] biasDetached;
+
         public NeuralLayer(NeuralLayer _layerBefore, int _dimensionSize, int _batchSize)
         {
             layerBefore = _layerBefore;
@@ -30,6 +34,7 @@ namespace ReinforcementLearning
             batchSize = _batchSize;
             oneOverBatchSize = (double)1 / _batchSize;
 
+            layerValuesZ = new double[dimensionSize, _batchSize];
             layerValues = new double[dimensionSize, _batchSize];
             weights = new double[dimensionSize, layerBeforeSize];
             bias = new double[dimensionSize, 1];
@@ -47,6 +52,21 @@ namespace ReinforcementLearning
             }
         }
 
+        public void Detach()
+        {
+            layerValuesZDetached = layerValuesZ.Clone() as double[,];
+            weightsDetached = weights.Clone() as double[,];
+            layerValuesDetached = layerValues.Clone() as double[,];
+            biasDetached = bias.Clone() as double[,];
+        }
+
+        public void Reatach()
+        {
+            layerValuesZ = layerValuesZDetached;
+            weights = weightsDetached;
+            layerValues = layerValuesDetached;
+            bias = biasDetached;
+        }
         #region Forwads -----------------------------------------------------------------
         public void ForwardPropagate()
         {

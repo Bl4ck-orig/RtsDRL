@@ -18,12 +18,12 @@ namespace ReinforcementLearning
         private bool clipValuesFirst;
         private double gradientClippingThreshold;
 
-        public NeuralNetwork(int _inputSize, 
-            int _hiddenLayerNodesAmount, 
-            int _hiddenLayersAmount, 
+        public NeuralNetwork(int _inputSize,
+            int _hiddenLayerNodesAmount,
+            int _hiddenLayersAmount,
             int _outputSize,
             int _batchSize,
-            double _gradientClippingThreshold, 
+            double _gradientClippingThreshold,
             double _minZeroConvergeThreshold,
             bool _fixNan,
             bool _clipValuesFirst,
@@ -38,7 +38,7 @@ namespace ReinforcementLearning
             hiddenLayerNodesAmount = _hiddenLayerNodesAmount;
 
             inputLayer = new InputLayer(inputSize, _batchSize);
-            
+
             hiddenLayers = new ReluLayer[_hiddenLayersAmount];
             hiddenLayers[0] = new ReluLayer(inputLayer, hiddenLayerNodesAmount, _batchSize);
             for (int i = 1; i < _hiddenLayersAmount; i++)
@@ -56,14 +56,14 @@ namespace ReinforcementLearning
 
         public NeuralNetwork(TrainingResult _trainingResult)
         {
-             inputSize = _trainingResult.inputSize;
-             outputSize = _trainingResult.outputSize;
-             batchSize = _trainingResult.batchSize;
-             hiddenLayerNodesAmount = _trainingResult.hiddenLayerNodesAmount;
-             inputLayer = _trainingResult.inputLayer;
-             hiddenLayers = _trainingResult.hiddenLayer;
-             outputLayer = _trainingResult.outputLayer;
-             gradientClippingThreshold = _trainingResult.gradientClippingThreshold;
+            inputSize = _trainingResult.inputSize;
+            outputSize = _trainingResult.outputSize;
+            batchSize = _trainingResult.batchSize;
+            hiddenLayerNodesAmount = _trainingResult.hiddenLayerNodesAmount;
+            inputLayer = _trainingResult.inputLayer;
+            hiddenLayers = _trainingResult.hiddenLayer;
+            outputLayer = _trainingResult.outputLayer;
+            gradientClippingThreshold = _trainingResult.gradientClippingThreshold;
         }
 
         #region Forward Propagation -----------------------------------------------------------------
@@ -81,6 +81,23 @@ namespace ReinforcementLearning
             inputLayer.SetInputs(_inputs);
             ApplyForwardPropagation();
             return outputLayer.GetOutputMatrixCopy();
+        }
+
+        public double[,] GetOutputMatrixDetached(double[,] _inputs)
+        {
+            inputLayer.Detach();
+            foreach (var hiddenLayer in hiddenLayers)
+                hiddenLayer.Detach();
+            outputLayer.Detach();
+
+            var outputMatrix = GetOutputMatrix(_inputs);
+
+            inputLayer.Reatach();
+            foreach (var hiddenLayer in hiddenLayers)
+                hiddenLayer.Reatach();
+            outputLayer.Reatach();
+
+            return outputMatrix;
         }
 
         public double[] GetHighestRewardVector(double[,] _inputs)
