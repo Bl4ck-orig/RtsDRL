@@ -19,6 +19,7 @@
         public readonly bool FixNan;
         public readonly bool ClipValuesFirst;
         public readonly int Seed;
+        public readonly bool LegacyTarget;
 
         public NfqArgs(Environment<double[]> _environment,
             IStrategy _explorationStrategy,
@@ -36,7 +37,8 @@
             double _gradientClippingThreshold = 25f,
             bool _fixNan = false,
             bool _clipValuesFirst = false,
-            int _seed = -1)
+            int _seed = -1,
+            bool _legacyTarget = false)
         {
             LearnRate = _learnRate;
             BatchSize = _batchSize;
@@ -55,6 +57,7 @@
             FixNan = _fixNan;
             ClipValuesFirst = _clipValuesFirst;
             Seed = _seed;
+            LegacyTarget = _legacyTarget;
         }
     }
 }

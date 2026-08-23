@@ -109,9 +109,12 @@ namespace ReinforcementLearning
 
         public double[] GetPrediction(double[] _inputs)
         {
-            inputLayer.SetInputs(_inputs);
-            ApplyForwardPropagation();
-            return outputLayer.GetHighestRewardRow();
+            double[] values = inputLayer.ForwardVector(_inputs);
+
+            foreach (var hiddenLayer in hiddenLayers)
+                values = hiddenLayer.ForwardVector(values);
+
+            return outputLayer.ForwardVector(values);
         }
         #endregion -----------------------------------------------------------------
 

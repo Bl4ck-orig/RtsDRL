@@ -75,6 +75,31 @@ namespace ReinforcementLearning
         }
 
         protected abstract void ApplyActivationFunction();
+
+        /// <summary>
+        /// Forward propagation for a single state instead of a whole batch. Uses the same
+        /// weights, biases and activation function as ForwardPropagate and therefore returns
+        /// identical values, but it neither allocates a full batch nor overwrites the layer
+        /// buffers that the training pass relies on.
+        /// </summary>
+        public virtual double[] ForwardVector(double[] _input)
+        {
+            double[] result = new double[dimensionSize];
+
+            for (int x = 0; x < dimensionSize; x++)
+            {
+                double sum = bias[x, 0];
+
+                for (int y = 0; y < layerBeforeSize; y++)
+                    sum += weights[x, y] * _input[y];
+
+                result[x] = ActivateValue(sum);
+            }
+
+            return result;
+        }
+
+        protected virtual double ActivateValue(double _value) => _value;
         #endregion -----------------------------------------------------------------
 
         #region Backwards -----------------------------------------------------------------

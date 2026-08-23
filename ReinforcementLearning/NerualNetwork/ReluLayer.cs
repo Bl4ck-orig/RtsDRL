@@ -21,6 +21,8 @@ namespace ReinforcementLearning
             }
         }
 
+        protected override double ActivateValue(double _value) => Math.Max(0, _value);
+
         public void BackwardPropagate(NeuralLayer _layerAfter)
         {
             changeInLayerError = _layerAfter.GetWeightsUnsafe().Transpose().DotProduct(_layerAfter.GetChangeInLayerErrorUnsafe());

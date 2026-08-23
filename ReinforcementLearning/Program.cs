@@ -2,6 +2,7 @@
 using ReinforcementLearning.Utils;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using Utilities;
@@ -23,13 +24,21 @@ namespace ReinforcementLearning
         private static double gradientClippingThreshold = 600f;
         private static double minZeroConvergeThreshold = 0.00001f;
         private static bool fixNan = false;
-        private static double gamma = 1f;
+        // Undiscounted returns make the Bellman operator a non-contraction, which is unstable
+        // in combination with the 100 step truncation limit.
+        private static double gamma = 0.99;
         private static bool clipValuesFirst = false;
         private static int hiddenLayerNodesAmount = 50;
         private static int hiddenLayersAmount = 3;
 
         static void Main(string[] args)
         {
+            if (args != null && args.Length > 0)
+            {
+                RunHeadless(args);
+                return;
+            }
+
             //RunQLearning();
             ContinueNfq(fileName);
             //RunNfq();
@@ -37,6 +46,275 @@ namespace ReinforcementLearning
             //TestModel(fileName);
             //TestModelFull(fileName);
         }
+
+        #region Headless -----------------------------------------------------------------
+        private static List<Dictionary<EEnemyInput, double>> TrainingInitialStates()
+        {
+            return new List<Dictionary<EEnemyInput, double>>()
+            {
+                StartStates.initialStateStandard,
+                StartStates.initialStateLateGame,
+                StartStates.initialStateLateGameDefending,
+                StartStates.initialStateLateGameAttacking,
+                StartStates.initialStateMidGame,
+                StartStates.shouldTryDefend,
+                StartStates.shouldAttack,
+                StartStates.shouldEat,
+                StartStates.shouldTryBalanceTribes,
+            };
+        }
+
+        private static void RunHeadless(string[] _args)
+        {
+            switch (_args[0].ToLowerInvariant())
+            {
+                case "train":
+                    TrainHeadless(_args);
+                    break;
+                case "eval":
+                    EvaluateHeadless(_args);
+                    break;
+                case "baselines":
+                    BaselinesHeadless(_args);
+                    break;
+                case "verify":
+                    SelfCheck.Run();
+                    break;
+                default:
+                    Console.WriteLine("usage: train <fixed|legacy> <minutes> <outputFile> [seed] [gamma] [continueFromFile]");
+                    Console.WriteLine("       eval <modelFile> [repeats] [seed] [epsilon]");
+                    Console.WriteLine("       verify");
+                    break;
+            }
+        }
+
+        private static void TrainHeadless(string[] _args)
+        {
+            bool legacy = _args[1].Equals("legacy", StringComparison.OrdinalIgnoreCase);
+            double minutes = double.Parse(_args[2], CultureInfo.InvariantCulture);
+            string outputFile = _args[3];
+            int seed = _args.Length > 4 ? int.Parse(_args[4], CultureInfo.InvariantCulture) : 1;
+            double usedGamma = _args.Length > 5 ? double.Parse(_args[5], CultureInfo.InvariantCulture) : gamma;
+            string continueFrom = _args.Length > 6 ? _args[6] : null;
+
+            NfqArgs nfqArgs = new NfqArgs(new EnvironmentRts(TrainingInitialStates()),
+                new GreedyStrategy(),
+                new EGreedyStrategy(exploration),
+                _learnRate: learnRate,
+                _batchSize: batchSize,
+                _maxMinutes: minutes,
+                _timeStepLimit: timeStepLimit,
+                _gradientClippingThreshold: gradientClippingThreshold,
+                _fixNan: fixNan,
+                _clipValuesFirst: clipValuesFirst,
+                _minZeroConvergeThreshold: minZeroConvergeThreshold,
+                _epochs: epochs,
+                _hiddenLayerNodesAmount: hiddenLayerNodesAmount,
+                _hiddenLayersAmount: hiddenLayersAmount,
+                _gamma: usedGamma,
+                _seed: seed,
+                _legacyTarget: legacy);
+
+            Console.WriteLine("[TRAIN] variant=" + (legacy ? "legacy" : "fixed")
+                + " minutes=" + minutes
+                + " seed=" + seed
+                + " gamma=" + usedGamma.ToString(CultureInfo.InvariantCulture)
+                + " lr=" + learnRate.ToString(CultureInfo.InvariantCulture)
+                + " batch=" + batchSize
+                + " epochs=" + epochs
+                + " net=" + hiddenLayersAmount + "x" + hiddenLayerNodesAmount);
+
+            if (!string.IsNullOrEmpty(continueFrom))
+                Console.WriteLine("[TRAIN] continuing from: " + continueFrom);
+
+            Nfq nfq = string.IsNullOrEmpty(continueFrom)
+                ? new Nfq(nfqArgs)
+                : new Nfq(nfqArgs, new NeuralNetwork(Serializer.DeserializeObject(continueFrom)));
+
+            NfqResult result = nfq.Train();
+
+            Serializer.SerializeObject(outputFile, result.ToNeuralNetworkResults());
+
+            Console.WriteLine("[TRAIN] reason: " + result.EndReason);
+            Console.WriteLine("[TRAIN] episodes: " + result.EpisodeRewards.Count
+                + "  optimisation steps: " + result.GradientMagnitudes.Count);
+
+            PrintGradientSummary(result.GradientMagnitudes);
+            PrintRewardSummary(result.EpisodeRewards);
+
+            Console.WriteLine("[TRAIN] saved: " + outputFile);
+        }
+
+        private static void PrintGradientSummary(List<double> _magnitudes)
+        {
+            if (_magnitudes.Count == 0)
+                return;
+
+            int tailSize = Math.Min(500, _magnitudes.Count);
+            var tail = _magnitudes.Skip(_magnitudes.Count - tailSize).ToList();
+
+            Console.WriteLine("[TRAIN] gradient magnitude  first=" + Format(_magnitudes[0])
+                + "  max=" + Format(_magnitudes.Max())
+                + "  mean(last " + tailSize + ")=" + Format(tail.Average()));
+        }
+
+        private static void PrintRewardSummary(List<double> _episodeRewards)
+        {
+            if (_episodeRewards.Count == 0)
+                return;
+
+            int tailSize = Math.Min(300, _episodeRewards.Count);
+            var tail = _episodeRewards.Skip(_episodeRewards.Count - tailSize).ToList();
+
+            Console.WriteLine("[TRAIN] episode reward  mean(all)=" + Format(_episodeRewards.Average())
+                + "  mean(last " + tailSize + ")=" + Format(tail.Average())
+                + "  wins=" + tail.Count(x => x > 0.5)
+                + "  losses=" + tail.Count(x => x < -0.5)
+                + "  of " + tailSize);
+        }
+
+        private static string Format(double _value) => _value.ToString("G6", CultureInfo.InvariantCulture);
+
+        private static void EvaluateHeadless(string[] _args)
+        {
+            string modelFile = _args[1];
+            int repeats = _args.Length > 2 ? int.Parse(_args[2], CultureInfo.InvariantCulture) : 30;
+            int seed = _args.Length > 3 ? int.Parse(_args[3], CultureInfo.InvariantCulture) : 1000;
+            double epsilon = _args.Length > 4 ? double.Parse(_args[4], CultureInfo.InvariantCulture) : 0.0;
+
+            NeuralNetwork nn = new NeuralNetwork(Serializer.DeserializeObject(modelFile));
+            IStrategy policy = epsilon > 0 ? (IStrategy)new EGreedyStrategy(epsilon) : new GreedyStrategy();
+            Random prng = new Random(seed);
+
+            int actionCount = Enum.GetValues(typeof(EEnemyOperation)).Length;
+            long[] actionHistogram = new long[actionCount];
+
+            Console.WriteLine("[EVAL] model=" + modelFile + " repeats=" + repeats + " seed=" + seed + " epsilon=" + epsilon.ToString(CultureInfo.InvariantCulture));
+            Console.WriteLine("[EVAL] " + "state".PadRight(32) + "model     noop      random");
+
+            double modelTotal = 0.0, noOpTotal = 0.0, randomTotal = 0.0;
+            var states = StartStates.StartStatesByLabel;
+
+            foreach (var state in states)
+            {
+                double modelSum = 0.0, noOpSum = 0.0, randomSum = 0.0;
+
+                for (int r = 0; r < repeats; r++)
+                {
+                    int episodeSeed = seed + r;
+
+                    modelSum += RunEpisode(s =>
+                    {
+                        int action = policy.SelectAction(s, nn, prng);
+                        actionHistogram[action]++;
+                        return action;
+                    }, state.Value, episodeSeed);
+
+                    noOpSum += RunEpisode(s => (int)EEnemyOperation.None, state.Value, episodeSeed);
+                    randomSum += RunEpisode(s => prng.Next(actionCount), state.Value, episodeSeed);
+                }
+
+                modelTotal += modelSum / repeats;
+                noOpTotal += noOpSum / repeats;
+                randomTotal += randomSum / repeats;
+
+                Console.WriteLine("[EVAL] " + state.Key.PadRight(32)
+                    + Format(modelSum / repeats).PadRight(10)
+                    + Format(noOpSum / repeats).PadRight(10)
+                    + Format(randomSum / repeats));
+            }
+
+            Console.WriteLine("[EVAL] " + "TOTAL".PadRight(32)
+                + Format(modelTotal / states.Count).PadRight(10)
+                + Format(noOpTotal / states.Count).PadRight(10)
+                + Format(randomTotal / states.Count));
+
+            long totalActions = actionHistogram.Sum();
+            Console.WriteLine("[EVAL] action distribution over " + totalActions + " decisions:");
+
+            for (int i = 0; i < actionCount; i++)
+            {
+                if (actionHistogram[i] == 0)
+                    continue;
+
+                Console.WriteLine("[EVAL]   " + ((EEnemyOperation)i).ToString().PadRight(28)
+                    + Format(100.0 * actionHistogram[i] / totalActions) + " %");
+            }
+        }
+
+        /// <summary>
+        /// Measures what the environment rewards at all: every constant action policy plus a
+        /// uniformly random one, so a learned policy can be put in relation to them.
+        /// </summary>
+        private static void BaselinesHeadless(string[] _args)
+        {
+            int repeats = _args.Length > 1 ? int.Parse(_args[1], CultureInfo.InvariantCulture) : 30;
+            int seed = _args.Length > 2 ? int.Parse(_args[2], CultureInfo.InvariantCulture) : 1000;
+
+            int actionCount = Enum.GetValues(typeof(EEnemyOperation)).Length;
+            var states = StartStates.StartStatesByLabel;
+
+            Console.WriteLine("[BASE] mean final reward over " + states.Count + " start states x "
+                + repeats + " episodes");
+
+            for (int a = 0; a < actionCount; a++)
+            {
+                int action = a;
+                double total = 0.0;
+
+                foreach (var state in states)
+                {
+                    double sum = 0.0;
+
+                    for (int r = 0; r < repeats; r++)
+                        sum += RunEpisode(s => action, state.Value, seed + r);
+
+                    total += sum / repeats;
+                }
+
+                Console.WriteLine("[BASE] always " + ((EEnemyOperation)a).ToString().PadRight(28)
+                    + Format(total / states.Count));
+            }
+
+            Random prng = new Random(seed);
+            double randomTotal = 0.0;
+
+            foreach (var state in states)
+            {
+                double sum = 0.0;
+
+                for (int r = 0; r < repeats; r++)
+                    sum += RunEpisode(s => prng.Next(actionCount), state.Value, seed + r);
+
+                randomTotal += sum / repeats;
+            }
+
+            Console.WriteLine("[BASE] " + "uniform random".PadRight(35) + Format(randomTotal / states.Count));
+        }
+
+        /// <summary>
+        /// Runs one episode from the given start state and returns the reward of the final
+        /// step, which is +1 for a win, -1 for a defeat and 0 when the step limit is hit.
+        /// </summary>
+        private static double RunEpisode(Func<double[], int> _selectAction,
+            Dictionary<EEnemyInput, double> _state,
+            int _seed)
+        {
+            EnvironmentRts env = new EnvironmentRts(new List<Dictionary<EEnemyInput, double>>() { _state });
+            env.Reset(true, true, _seed, timeStepLimit);
+
+            bool done = false;
+            StepResult<double[]> result = default;
+
+            while (!done)
+            {
+                result = env.Step(_selectAction(env.State));
+                done = result.IsTruncated || result.Done;
+            }
+
+            return result.Reward;
+        }
+        #endregion -----------------------------------------------------------------
 
         private static void RunQLearning()
         {
@@ -156,7 +434,7 @@ namespace ReinforcementLearning
             foreach (var state in states)
             {
                 Console.WriteLine(state.Key);
-                var nextResult = TestState(_filename, i++, StartStates.initialStateStandard);
+                var nextResult = TestState(_filename, i++, state.Value);
 
                 modelTotalReward += nextResult.ModelLastReward;
                 noOpTotalReward += nextResult.NoOpLastReward;
