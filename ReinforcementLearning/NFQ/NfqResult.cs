@@ -8,6 +8,7 @@ namespace ReinforcementLearning
         public readonly double LearnRate;
         public readonly string EndReason;
         public readonly List<double> EpisodeRewards;
+        public readonly List<double> EpisodeOutcomes;
         public readonly List<long> EpisodeTimeStep;
         public readonly List<long> EpisodeExploration;
         public readonly List<double> GradientMagnitudes;
@@ -15,7 +16,8 @@ namespace ReinforcementLearning
         public NfqResult(IFcq model,
             double learnRate,
             string endReason, 
-            List<double> episodeRewards, 
+            List<double> episodeRewards,
+            List<double> episodeOutcomes,
             List<long> episodeTimeStep, 
             List<long> episodeExploration,
             List<double> gradientMagnitudes)
@@ -24,6 +26,7 @@ namespace ReinforcementLearning
             LearnRate = learnRate;
             EndReason = endReason;
             EpisodeRewards = episodeRewards;
+            EpisodeOutcomes = episodeOutcomes;
             EpisodeTimeStep = episodeTimeStep;
             EpisodeExploration = episodeExploration;
             GradientMagnitudes = gradientMagnitudes;

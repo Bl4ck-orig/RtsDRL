@@ -81,11 +81,36 @@ namespace ReinforcementLearning
                     SelfCheck.Run();
                     break;
                 default:
-                    Console.WriteLine("usage: train <fixed|legacy> <minutes> <outputFile> [seed] [gamma] [continueFromFile]");
+                    Console.WriteLine("usage: train <fixed|legacy> <minutes> <outputFile> [seed=N] [gamma=G] [penalty=P] [eps=E] [epsmin=E] [epsdecay=N] [continue=file]");
                     Console.WriteLine("       eval <modelFile> [repeats] [seed] [epsilon]");
+                    Console.WriteLine("       baselines [repeats] [seed]");
                     Console.WriteLine("       verify");
                     break;
             }
+        }
+
+        private static Dictionary<string, string> ParseOptions(string[] _args, int _from)
+        {
+            var options = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            for (int i = _from; i < _args.Length; i++)
+            {
+                int split = _args[i].IndexOf('=');
+
+                if (split <= 0)
+                    continue;
+
+                options[_args[i].Substring(0, split)] = _args[i].Substring(split + 1);
+            }
+
+            return options;
+        }
+
+        private static double Option(Dictionary<string, string> _options, string _key, double _fallback)
+        {
+            return _options.ContainsKey(_key)
+                ? double.Parse(_options[_key], CultureInfo.InvariantCulture)
+                : _fallback;
         }
 
         private static void TrainHeadless(string[] _args)
@@ -93,13 +118,22 @@ namespace ReinforcementLearning
             bool legacy = _args[1].Equals("legacy", StringComparison.OrdinalIgnoreCase);
             double minutes = double.Parse(_args[2], CultureInfo.InvariantCulture);
             string outputFile = _args[3];
-            int seed = _args.Length > 4 ? int.Parse(_args[4], CultureInfo.InvariantCulture) : 1;
-            double usedGamma = _args.Length > 5 ? double.Parse(_args[5], CultureInfo.InvariantCulture) : gamma;
-            string continueFrom = _args.Length > 6 ? _args[6] : null;
+
+            var options = ParseOptions(_args, 4);
+
+            int seed = (int)Option(options, "seed", 1);
+            double usedGamma = Option(options, "gamma", gamma);
+            double stepPenalty = Option(options, "penalty", 0.0);
+            double epsilonStart = Option(options, "eps", exploration);
+            double epsilonMin = Option(options, "epsmin", epsilonStart);
+            long epsilonDecaySteps = (long)Option(options, "epsdecay", 0);
+            string continueFrom = options.ContainsKey("continue") ? options["continue"] : null;
+
+            EnvironmentRts.StepPenalty = stepPenalty;
 
             NfqArgs nfqArgs = new NfqArgs(new EnvironmentRts(TrainingInitialStates()),
                 new GreedyStrategy(),
-                new EGreedyStrategy(exploration),
+                new EGreedyStrategy(epsilonStart, epsilonMin, epsilonDecaySteps),
                 _learnRate: learnRate,
                 _batchSize: batchSize,
                 _maxMinutes: minutes,
@@ -116,9 +150,13 @@ namespace ReinforcementLearning
                 _legacyTarget: legacy);
 
             Console.WriteLine("[TRAIN] variant=" + (legacy ? "legacy" : "fixed")
-                + " minutes=" + minutes
+                + " minutes=" + minutes.ToString(CultureInfo.InvariantCulture)
                 + " seed=" + seed
                 + " gamma=" + usedGamma.ToString(CultureInfo.InvariantCulture)
+                + " penalty=" + stepPenalty.ToString(CultureInfo.InvariantCulture)
+                + " eps=" + epsilonStart.ToString(CultureInfo.InvariantCulture)
+                + "->" + epsilonMin.ToString(CultureInfo.InvariantCulture)
+                + " over " + epsilonDecaySteps + " steps"
                 + " lr=" + learnRate.ToString(CultureInfo.InvariantCulture)
                 + " batch=" + batchSize
                 + " epochs=" + epochs
@@ -140,7 +178,7 @@ namespace ReinforcementLearning
                 + "  optimisation steps: " + result.GradientMagnitudes.Count);
 
             PrintGradientSummary(result.GradientMagnitudes);
-            PrintRewardSummary(result.EpisodeRewards);
+            PrintRewardSummary(result.EpisodeOutcomes);
 
             Console.WriteLine("[TRAIN] saved: " + outputFile);
         }
@@ -158,15 +196,15 @@ namespace ReinforcementLearning
                 + "  mean(last " + tailSize + ")=" + Format(tail.Average()));
         }
 
-        private static void PrintRewardSummary(List<double> _episodeRewards)
+        private static void PrintRewardSummary(List<double> _episodeOutcomes)
         {
-            if (_episodeRewards.Count == 0)
+            if (_episodeOutcomes.Count == 0)
                 return;
 
-            int tailSize = Math.Min(300, _episodeRewards.Count);
-            var tail = _episodeRewards.Skip(_episodeRewards.Count - tailSize).ToList();
+            int tailSize = Math.Min(300, _episodeOutcomes.Count);
+            var tail = _episodeOutcomes.Skip(_episodeOutcomes.Count - tailSize).ToList();
 
-            Console.WriteLine("[TRAIN] episode reward  mean(all)=" + Format(_episodeRewards.Average())
+            Console.WriteLine("[TRAIN] outcome (+1 won, -1 lost, 0 step limit)  mean(all)=" + Format(_episodeOutcomes.Average())
                 + "  mean(last " + tailSize + ")=" + Format(tail.Average())
                 + "  wins=" + tail.Count(x => x > 0.5)
                 + "  losses=" + tail.Count(x => x < -0.5)
@@ -312,7 +350,12 @@ namespace ReinforcementLearning
                 done = result.IsTruncated || result.Done;
             }
 
-            return result.Reward;
+            // The outcome rather than the reward, so the numbers stay comparable no matter how
+            // the reward is shaped: +1 won, -1 lost, 0 step limit reached.
+            if (!result.Done)
+                return 0.0;
+
+            return result.Reward > 0.0 ? 1.0 : -1.0;
         }
         #endregion -----------------------------------------------------------------
 

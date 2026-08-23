@@ -29,6 +29,7 @@ namespace ReinforcementLearning
 
         private List<Experience<double[]>> experiences;
         private List<double> episodeRewards;
+        private List<double> episodeOutcomes;
         private List<long> episodeTimeStep;
         private List<long> episodeExploration;
         private List<double> gradientMagnitudes;
@@ -72,6 +73,7 @@ namespace ReinforcementLearning
 
             experiences = new List<Experience<double[]>>();
             episodeRewards = new List<double>();
+            episodeOutcomes = new List<double>();
             episodeTimeStep = new List<long>();
             episodeExploration = new List<long>();
             gradientMagnitudes = new List<double>();
@@ -100,6 +102,7 @@ namespace ReinforcementLearning
 
             experiences = new List<Experience<double[]>>();
             episodeRewards = new List<double>();
+            episodeOutcomes = new List<double>();
             episodeTimeStep = new List<long>();
             episodeExploration = new List<long>();
             gradientMagnitudes = new List<double>();
@@ -127,6 +130,7 @@ namespace ReinforcementLearning
                 bool nanOccured = false;
                 currentGamma = gamma;
                 episodeRewards.Add(0.0f);
+                episodeOutcomes.Add(0.0f);
                 episodeTimeStep.Add(0);
                 episodeExploration.Add(0);
 
@@ -197,6 +201,7 @@ namespace ReinforcementLearning
                 learnRate,
                 trainingFinishedReason, 
                 episodeRewards,
+                episodeOutcomes,
                 episodeTimeStep, 
                 episodeExploration, 
                 gradientMagnitudes);
@@ -221,6 +226,11 @@ namespace ReinforcementLearning
 
             experiences.Add(experience);
             episodeRewards[episodeRewards.Count - 1] += stepResult.Reward;
+
+            // The outcome without any reward shaping, so the statistics stay comparable
+            // between different reward settings.
+            if (stepResult.Done && !stepResult.IsTruncated)
+                episodeOutcomes[episodeOutcomes.Count - 1] = stepResult.Reward > 0.0 ? 1.0 : -1.0;
             episodeTimeStep[episodeTimeStep.Count - 1] += 1;
             episodeExploration[episodeExploration.Count - 1] += trainingStrategy.ExploratoryActionTaken ? 1 : 0;
             return (stepResult.NextState, stepResult.Done || stepResult.IsTruncated);

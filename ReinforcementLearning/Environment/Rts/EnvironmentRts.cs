@@ -17,6 +17,12 @@ namespace ReinforcementLearning
         public const int MIN_AMOUNT_OF_GHOULS_FOR_DEFENSIVE_TRIBE_TAKE_OVER = 2;
         public const int MIN_AMOUNT_OF_GHOULS_FOR_ATTACK = 5;
 
+        // Reaching the step limit used to be worth exactly 0, which made stalling a safe and
+        // easy local optimum: better than the -1 for dying and without the risk that
+        // attacking carries. A small cost per step removes that free ride. Left at 0 by
+        // default so the original behaviour is reproducible.
+        public static double StepPenalty { get; set; } = 0.0;
+
         private const double DEFEAT_REWARD = -1.0f;
         private const double VICTORY_REWARD = 1.0f;
 
@@ -123,6 +129,8 @@ namespace ReinforcementLearning
                 deltaReward = DEFEAT_REWARD;
             if (victory)
                 deltaReward = VICTORY_REWARD;
+
+            deltaReward -= StepPenalty;
 
             return (State, deltaReward, defeat || victory);
         }
