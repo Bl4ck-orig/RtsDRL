@@ -10,12 +10,14 @@ namespace ReinforcementLearning
         private const int MAX_GHOULS = 40;
 
         public const double AMOUNT_OF_GHOULS_FOR_BUILDING_PERCENT = 0.15f;
-        public const double AMOUNT_OF_GHOULS_FOR_ATTACK_PERCENT = 0.25f;
+        // Balance values that the attack loop hinges on. Settable so they can be swept
+        // without a rebuild; the defaults are the original constants.
+        public static double AMOUNT_OF_GHOULS_FOR_ATTACK_PERCENT { get; set; } = 0.25;
         public const double AMOUNT_OF_GHOULS_FOR_PICKUP_WEAPONS_PERCENT = 0.25f;
         public const double AMOUNT_OF_GHOULS_FOR_TRIBE_TAKEOVER_PERCENT = 0.25f;
         public const int MIN_AMOUNT_OF_GHOULS_FOR_TRIBE_TAKE_OVER = 5;
         public const int MIN_AMOUNT_OF_GHOULS_FOR_DEFENSIVE_TRIBE_TAKE_OVER = 2;
-        public const int MIN_AMOUNT_OF_GHOULS_FOR_ATTACK = 5;
+        public static int MIN_AMOUNT_OF_GHOULS_FOR_ATTACK { get; set; } = 5;
 
         // Reaching the step limit used to be worth exactly 0, which made stalling a safe and
         // easy local optimum: better than the -1 for dying and without the risk that
@@ -38,7 +40,7 @@ namespace ReinforcementLearning
         private const double REPRODUCTION_CHANCE_REDUCTION_PER_UNBALANCED_TRIBE = 0.01f;
         private const double INCREASE_FOODS_CHANCE_PER_GHOUL = 0.02f;
         private const double INCREASE_FOODS_CHANCE_PER_TRIBE = 0.05f;
-        private const double DECREASE_ATTACKING_GHOUL_BY_DEATH_CHANCE = 0.05f;
+        public static double DECREASE_ATTACKING_GHOUL_BY_DEATH_CHANCE { get; set; } = 0.05;
         private const double DECREASE_UNUSED_AGRESSIVE_TRIBES_CHANCE_PER_ATTACKING_GHOUL = 0.005f;
         private const double DECREASE_UNUSED_AGRESSIVE_TRIBES_CHANCE_PER_ATTACKING_WITH_WEAPON_GHOUL = 0.0075f;
 

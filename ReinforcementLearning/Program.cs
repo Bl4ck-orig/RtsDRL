@@ -82,8 +82,9 @@ namespace ReinforcementLearning
                     break;
                 default:
                     Console.WriteLine("usage: train <fixed|legacy> <minutes> <outputFile> [seed=N] [gamma=G] [penalty=P] [eps=E] [epsmin=E] [epsdecay=N] [continue=file]");
-                    Console.WriteLine("       eval <modelFile> [repeats] [seed] [epsilon]");
-                    Console.WriteLine("       baselines [repeats] [seed]");
+                    Console.WriteLine("       eval <modelFile> [repeats] [seed] [epsilon] [env options]");
+                    Console.WriteLine("       baselines [repeats] [seed] [env options]");
+                    Console.WriteLine("       env options: penalty=P deathchance=D attackpct=P minattack=N steplimit=N");
                     Console.WriteLine("       verify");
                     break;
             }
@@ -113,6 +114,28 @@ namespace ReinforcementLearning
                 : _fallback;
         }
 
+        /// <summary>
+        /// Applies the environment settings an experiment varies. Every one of them defaults
+        /// to the value the simulation originally had, so leaving them out reproduces it.
+        /// </summary>
+        private static void ApplyEnvironmentOptions(Dictionary<string, string> _options)
+        {
+            EnvironmentRts.StepPenalty = Option(_options, "penalty", 0.0);
+            EnvironmentRts.DECREASE_ATTACKING_GHOUL_BY_DEATH_CHANCE = Option(_options, "deathchance", 0.05);
+            EnvironmentRts.AMOUNT_OF_GHOULS_FOR_ATTACK_PERCENT = Option(_options, "attackpct", 0.25);
+            EnvironmentRts.MIN_AMOUNT_OF_GHOULS_FOR_ATTACK = (int)Option(_options, "minattack", 5);
+            timeStepLimit = (int)Option(_options, "steplimit", timeStepLimit);
+        }
+
+        private static string DescribeEnvironment()
+        {
+            return "penalty=" + EnvironmentRts.StepPenalty.ToString(CultureInfo.InvariantCulture)
+                + " deathchance=" + EnvironmentRts.DECREASE_ATTACKING_GHOUL_BY_DEATH_CHANCE.ToString(CultureInfo.InvariantCulture)
+                + " attackpct=" + EnvironmentRts.AMOUNT_OF_GHOULS_FOR_ATTACK_PERCENT.ToString(CultureInfo.InvariantCulture)
+                + " minattack=" + EnvironmentRts.MIN_AMOUNT_OF_GHOULS_FOR_ATTACK
+                + " steplimit=" + timeStepLimit;
+        }
+
         private static void TrainHeadless(string[] _args)
         {
             bool legacy = _args[1].Equals("legacy", StringComparison.OrdinalIgnoreCase);
@@ -123,13 +146,12 @@ namespace ReinforcementLearning
 
             int seed = (int)Option(options, "seed", 1);
             double usedGamma = Option(options, "gamma", gamma);
-            double stepPenalty = Option(options, "penalty", 0.0);
             double epsilonStart = Option(options, "eps", exploration);
             double epsilonMin = Option(options, "epsmin", epsilonStart);
             long epsilonDecaySteps = (long)Option(options, "epsdecay", 0);
             string continueFrom = options.ContainsKey("continue") ? options["continue"] : null;
 
-            EnvironmentRts.StepPenalty = stepPenalty;
+            ApplyEnvironmentOptions(options);
 
             NfqArgs nfqArgs = new NfqArgs(new EnvironmentRts(TrainingInitialStates()),
                 new GreedyStrategy(),
@@ -153,7 +175,7 @@ namespace ReinforcementLearning
                 + " minutes=" + minutes.ToString(CultureInfo.InvariantCulture)
                 + " seed=" + seed
                 + " gamma=" + usedGamma.ToString(CultureInfo.InvariantCulture)
-                + " penalty=" + stepPenalty.ToString(CultureInfo.InvariantCulture)
+                + " " + DescribeEnvironment()
                 + " eps=" + epsilonStart.ToString(CultureInfo.InvariantCulture)
                 + "->" + epsilonMin.ToString(CultureInfo.InvariantCulture)
                 + " over " + epsilonDecaySteps + " steps"
@@ -216,9 +238,10 @@ namespace ReinforcementLearning
         private static void EvaluateHeadless(string[] _args)
         {
             string modelFile = _args[1];
-            int repeats = _args.Length > 2 ? int.Parse(_args[2], CultureInfo.InvariantCulture) : 30;
-            int seed = _args.Length > 3 ? int.Parse(_args[3], CultureInfo.InvariantCulture) : 1000;
-            double epsilon = _args.Length > 4 ? double.Parse(_args[4], CultureInfo.InvariantCulture) : 0.0;
+            int repeats = _args.Length > 2 && !_args[2].Contains("=") ? int.Parse(_args[2], CultureInfo.InvariantCulture) : 30;
+            int seed = _args.Length > 3 && !_args[3].Contains("=") ? int.Parse(_args[3], CultureInfo.InvariantCulture) : 1000;
+            double epsilon = _args.Length > 4 && !_args[4].Contains("=") ? double.Parse(_args[4], CultureInfo.InvariantCulture) : 0.0;
+            ApplyEnvironmentOptions(ParseOptions(_args, 2));
 
             NeuralNetwork nn = new NeuralNetwork(Serializer.DeserializeObject(modelFile));
             IStrategy policy = epsilon > 0 ? (IStrategy)new EGreedyStrategy(epsilon) : new GreedyStrategy();
@@ -286,8 +309,9 @@ namespace ReinforcementLearning
         /// </summary>
         private static void BaselinesHeadless(string[] _args)
         {
-            int repeats = _args.Length > 1 ? int.Parse(_args[1], CultureInfo.InvariantCulture) : 30;
-            int seed = _args.Length > 2 ? int.Parse(_args[2], CultureInfo.InvariantCulture) : 1000;
+            int repeats = _args.Length > 1 && !_args[1].Contains("=") ? int.Parse(_args[1], CultureInfo.InvariantCulture) : 30;
+            int seed = _args.Length > 2 && !_args[2].Contains("=") ? int.Parse(_args[2], CultureInfo.InvariantCulture) : 1000;
+            ApplyEnvironmentOptions(ParseOptions(_args, 1));
 
             int actionCount = Enum.GetValues(typeof(EEnemyOperation)).Length;
             var states = StartStates.StartStatesByLabel;
