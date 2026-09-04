@@ -20,6 +20,7 @@ namespace ReinforcementLearning
         private long maxEpisodes;
         private IStrategy explorationStrategy;
         private IStrategy trainingStrategy;
+        private bool legacyTarget;
 
         private Random prng;
         private int nS;
@@ -28,9 +29,17 @@ namespace ReinforcementLearning
 
         private List<Experience<double[]>> experiences;
         private List<double> episodeRewards;
+        private List<double> episodeOutcomes;
         private List<long> episodeTimeStep;
         private List<long> episodeExploration;
         private List<double> gradientMagnitudes;
+        private List<Experience<double[]>> fitBatch;
+        private int stepsSinceFit;
+
+        // Experience replay: the batch is drawn at random from a buffer of recent transitions
+        // instead of being the last batchSize steps, which nearly all come from the same few
+        // episodes and from the same policy.
+        private const int REPLAY_CAPACITY_IN_BATCHES = 20;
 
         public Nfq(NfqArgs _args)
         {
@@ -45,6 +54,7 @@ namespace ReinforcementLearning
             explorationStrategy = _args.ExplorationStrategy;
             trainingStrategy = _args.TrainingStrategy;
             timeStepLimit = _args.TimeStepLimit;
+            legacyTarget = _args.LegacyTarget;
 
             prng = seed == -1 ? new Random() : new Random(seed);
             nS = environment.ObservationSpaceSize;
@@ -63,9 +73,11 @@ namespace ReinforcementLearning
 
             experiences = new List<Experience<double[]>>();
             episodeRewards = new List<double>();
+            episodeOutcomes = new List<double>();
             episodeTimeStep = new List<long>();
             episodeExploration = new List<long>();
             gradientMagnitudes = new List<double>();
+            fitBatch = new List<Experience<double[]>>();
         }
 
         public Nfq(NfqArgs _args, NeuralNetwork _nn)
@@ -81,6 +93,7 @@ namespace ReinforcementLearning
             explorationStrategy = _args.ExplorationStrategy;
             trainingStrategy = _args.TrainingStrategy;
             timeStepLimit = _args.TimeStepLimit;
+            legacyTarget = _args.LegacyTarget;
 
             prng = seed == -1 ? new Random() : new Random(seed);
             nS = environment.ObservationSpaceSize;
@@ -89,9 +102,11 @@ namespace ReinforcementLearning
 
             experiences = new List<Experience<double[]>>();
             episodeRewards = new List<double>();
+            episodeOutcomes = new List<double>();
             episodeTimeStep = new List<long>();
             episodeExploration = new List<long>();
             gradientMagnitudes = new List<double>();
+            fitBatch = new List<Experience<double[]>>();
         }
 
         public NfqResult Train()
@@ -115,6 +130,7 @@ namespace ReinforcementLearning
                 bool nanOccured = false;
                 currentGamma = gamma;
                 episodeRewards.Add(0.0f);
+                episodeOutcomes.Add(0.0f);
                 episodeTimeStep.Add(0);
                 episodeExploration.Add(0);
 
@@ -127,18 +143,32 @@ namespace ReinforcementLearning
                     if (InputManager.Interrupt)
                         goto exit;
 
-                    if (experiences.Count < batchSize)
+                    stepsSinceFit++;
+
+                    if (experiences.Count < batchSize || stepsSinceFit < batchSize)
                         continue;
 
-                    for (int i = 0; i < epochs; i++)
-                    {
-                        OptimizeModel();
+                    stepsSinceFit = 0;
+                    PrepareFitBatch();
 
-                        if (InputManager.Interrupt)
-                            goto exit;
+                    try
+                    {
+                        double[] targets = legacyTarget ? null : ComputeTdTargets();
+
+                        for (int i = 0; i < epochs; i++)
+                        {
+                            OptimizeModel(targets);
+
+                            if (InputManager.Interrupt)
+                                goto exit;
+                        }
+                    }
+                    catch (ArgumentOutOfRangeException)
+                    {
+                        nanOccured = true;
+                        goto exit;
                     }
 
-                    experiences.Clear();
                 }
 
             exit:
@@ -171,6 +201,7 @@ namespace ReinforcementLearning
                 learnRate,
                 trainingFinishedReason, 
                 episodeRewards,
+                episodeOutcomes,
                 episodeTimeStep, 
                 episodeExploration, 
                 gradientMagnitudes);
@@ -188,33 +219,129 @@ namespace ReinforcementLearning
                 isFailure ? 1.0f : 0.0f,
                 currentGamma);
 
-            currentGamma *= currentGamma;
+            // Squaring compounds to gamma^(2^t) instead of gamma^t, and Q-learning applies
+            // the discount once per bootstrap step anyway - kept only for the legacy variant.
+            if (legacyTarget)
+                currentGamma *= currentGamma;
+
             experiences.Add(experience);
             episodeRewards[episodeRewards.Count - 1] += stepResult.Reward;
+
+            // The outcome without any reward shaping, so the statistics stay comparable
+            // between different reward settings.
+            if (stepResult.Done && !stepResult.IsTruncated)
+                episodeOutcomes[episodeOutcomes.Count - 1] = stepResult.Reward > 0.0 ? 1.0 : -1.0;
             episodeTimeStep[episodeTimeStep.Count - 1] += 1;
             episodeExploration[episodeExploration.Count - 1] += trainingStrategy.ExploratoryActionTaken ? 1 : 0;
             return (stepResult.NextState, stepResult.Done || stepResult.IsTruncated);
         }
 
-        private void OptimizeModel()
+        /// <summary>
+        /// Selects the transitions the next fitting round is trained on. The legacy variant
+        /// keeps the original behaviour of taking the last batchSize steps and discarding
+        /// them afterwards; the fixed variant samples from a buffer of recent transitions so
+        /// consecutive batches are not all drawn from the same handful of episodes.
+        /// </summary>
+        private void PrepareFitBatch()
         {
-            List<double[]> states = experiences.Select(x => x.State).ToList();
-            List<int> actions = experiences.Select(x => x.Action).ToList();
-            List<double> rewards = experiences.Select(x => x.Reward).ToList();
-            List<double[]> nextStates = experiences.Select(x => x.NextState).ToList();
-            List<double> isTerminals = experiences.Select(x => x.IsFailure).ToList();
-            double[] gammas = experiences.Select(x => x.Gamma).ToArray();
+            fitBatch.Clear();
 
-            double[,] nextStateFeatureMatrix = Commons.ToMatrix(nextStates).Transpose(); 
+            if (legacyTarget)
+            {
+                fitBatch.AddRange(experiences);
+                experiences.Clear();
+                return;
+            }
 
-            double[,] maxAQSp = onlineModel.GetOutputMatrixDetached(nextStateFeatureMatrix); 
+            int capacity = REPLAY_CAPACITY_IN_BATCHES * batchSize;
+
+            if (experiences.Count > capacity)
+                experiences.RemoveRange(0, experiences.Count - capacity);
+
+            for (int i = 0; i < batchSize; i++)
+                fitBatch.Add(experiences[prng.Next(experiences.Count)]);
+        }
+
+        /// <summary>
+        /// Computes the temporal difference targets once per fitting round. They stay fixed
+        /// while the network is fitted to them, which is what makes this fitted Q iteration.
+        /// Recomputing the bootstrap value after every gradient step turns it into a moving
+        /// target that chases itself and lets the Q values diverge.
+        /// </summary>
+        private double[] ComputeTdTargets()
+        {
+            List<double[]> nextStates = fitBatch.Select(x => x.NextState).ToList();
+
+            double[,] nextStateFeatureMatrix = Commons.ToMatrix(nextStates).Transpose();
+            double[,] nextStateQValues = onlineModel.GetOutputMatrixDetached(nextStateFeatureMatrix);
+
+            double[] targets = new double[fitBatch.Count];
+
+            for (int i = 0; i < fitBatch.Count; i++)
+            {
+                double maxNextQValue = Commons.GetMaxValueOfColumn(nextStateQValues, i);
+
+                targets[i] = fitBatch[i].Reward
+                    + gamma * maxNextQValue * (1.0 - fitBatch[i].IsFailure);
+            }
+
+            return targets;
+        }
+
+        private void OptimizeModel(double[] _targets)
+        {
+            if (legacyTarget)
+            {
+                OptimizeModelLegacy();
+                return;
+            }
+
+            List<double[]> states = fitBatch.Select(x => x.State).ToList();
+
+            double[,] stateFeatureMatrix = Commons.ToMatrix(states).Transpose();
+            double[,] statePredictionOutput = onlineModel.GetOutputMatrix(stateFeatureMatrix);
+
+            // The output layer computes dZ = prediction - target, so what is handed to
+            // Backwards has to be the target itself. Starting from the current prediction
+            // and only overwriting the row of the action that was actually taken leaves the
+            // error of every other action at exactly 0, so this step does not touch them.
+            double[,] targetQS = statePredictionOutput.Clone() as double[,];
+
+            for (int i = 0; i < fitBatch.Count; i++)
+                targetQS[fitBatch[i].Action, i] = _targets[i];
+
+            onlineModel.Backwards(targetQS);
+            double gradientMagnitude = onlineModel.AdjustWeightsAndBiases(learnRate);
+
+            gradientMagnitudes.Add(gradientMagnitude);
+        }
+
+        /// <summary>
+        /// Original target computation, kept so both variants can be compared under identical
+        /// conditions. It squares the temporal difference error and feeds that to Backwards,
+        /// which expects a target - so the network is fitted to the squared error instead of
+        /// to the Q value. It also lacks the max over the next actions and updates all
+        /// actions instead of only the one that was taken.
+        /// </summary>
+        private void OptimizeModelLegacy()
+        {
+            List<double[]> states = fitBatch.Select(x => x.State).ToList();
+            List<int> actions = fitBatch.Select(x => x.Action).ToList();
+            List<double> rewards = fitBatch.Select(x => x.Reward).ToList();
+            List<double[]> nextStates = fitBatch.Select(x => x.NextState).ToList();
+            List<double> isTerminals = fitBatch.Select(x => x.IsFailure).ToList();
+            double[] gammas = fitBatch.Select(x => x.Gamma).ToArray();
+
+            double[,] nextStateFeatureMatrix = Commons.ToMatrix(nextStates).Transpose();
+
+            double[,] maxAQSp = onlineModel.GetOutputMatrixDetached(nextStateFeatureMatrix);
             double[] oneMinusTerminals = Commons.SubtractFromValue(1.0f, isTerminals).ToArray();
             double[,] targetQS_a = Commons.MultiplyMatrixByArrayPerColumn(maxAQSp, oneMinusTerminals);
             double[,] targetQS_b = Commons.MultiplyMatrixByArrayPerColumn(targetQS_a, gammas);
-            double[,] targetQS = Commons.AddVectorToMatrix(targetQS_b, rewards.ToArray());  
+            double[,] targetQS = Commons.AddVectorToMatrix(targetQS_b, rewards.ToArray());
 
-            double[,] stateFeatureMatrix = Commons.ToMatrix(states).Transpose(); 
-            double[,] statePredictionOutput = onlineModel.GetOutputMatrix(stateFeatureMatrix);  
+            double[,] stateFeatureMatrix = Commons.ToMatrix(states).Transpose();
+            double[,] statePredictionOutput = onlineModel.GetOutputMatrix(stateFeatureMatrix);
             double[,] tdErrors = Commons.Subtract(targetQS, statePredictionOutput);
 
             double[,] errorMatrix = new double[tdErrors.GetLength(0), tdErrors.GetLength(1)];

@@ -13,6 +13,10 @@ namespace ReinforcementLearning
 
         public static void PrintProgress(float _finishedPercent, bool _firstCall)
         {
+            // Cursor positioning is not available when the output is piped to a file.
+            if (Console.IsOutputRedirected)
+                return;
+
             if (!_firstCall && Console.CursorTop != 0)
             {
                 Console.SetCursorPosition(0, Console.CursorTop - 1);
